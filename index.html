@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="zh-TW" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacist Clinical Training Simulator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Noto Sans TC', sans-serif; }
+    
+    .pulse-gentle {
+      animation: pulseGentle 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseGentle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .character-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .character-hover:hover {
+      transform: translateY(-4px);
+      filter: brightness(1.1);
+    }
+    
+    .dialogue-enter {
+      animation: dialogueSlide 0.4s ease-out;
+    }
+    
+    @keyframes dialogueSlide {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .option-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .option-btn:hover {
+      transform: translateX(8px);
+    }
+    
+    .vitals-display {
+      font-family: 'Courier New', monospace;
+    }
+    
+    .ecg-line {
+      animation: ecgMove 2s linear infinite;
+    }
+    
+    @keyframes ecgMove {
+      from { stroke-dashoffset: 100; }
+      to { stroke-dashoffset: 0; }
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-slate-900 overflow-auto">
+  <div id="app-container" class="h-full w-full flex flex-col"><!-- Header -->
+   <header class="bg-gradient-to-r from-teal-800 to-cyan-900 px-6 py-4 shadow-lg flex-shrink-0">
+    <div class="flex items-center justify-between mb-3">
+     <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+       </svg>
+      </div>
+      <div>
+       <h1 id="scenario-title" class="text-white text-xl font-bold">Pharmacist Clinical Training Simulator</h1>
+       <p class="text-teal-200 text-sm">Patients with chewing and swallowing difficulties with NG tube</p>
+       <p class="text-slate-400 text-xs mt-1">教案設計者: 崇鈺老師研究室團隊 (Shao-Yuan Hao)</p>
+      </div>
+     </div>
+     <div id="score-display" class="bg-white/10 rounded-lg px-4 py-2"><span class="text-teal-200 text-sm">Learning Progress</span> <span id="progress-text" class="text-white font-bold ml-2">0 / 3</span>
+     </div>
+    </div><!-- Background Scenario -->
+    <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-200">
+     <p class="font-bold text-teal-300 mb-2">📋 Case Background:</p>
+     <p class="mb-2">An 85-year-old male, currently residing in a long-term care facility, with a medical history of stroke, hypertension, and benign prostatic hyperplasia (BPH). Following his first stroke one month ago, he presents with dysarthria and has an indwelling nasogastric (NG) tube.</p>
+     <p class="mb-2">On January 26, he was admitted to the emergency department due to abdominal pain. The physician suspected gastrointestinal bleeding caused by Aspirin and Clopidogrel; consequently, both medications were suspended for three days. On January 29, Aspirin was resumed with gastroprotective Esomeprazole added. An effervescent Acetylcysteine tablet was prescribed for phlegm management.</p>
+     <p>On February 2, the patient may be discharged if the NG tube is removed. As a pharmacist, you must provide guidance to facility caregivers on the proper use of thickeners to prevent aspiration.</p>
+    </div>
+   </header><!-- Main Content -->
+   <main class="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0"><!-- Left Panel - Patient Info -->
+    <aside class="lg:w-80 flex-shrink-0 space-y-4"><!-- Patient Card -->
+     <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+      <div class="flex items-center gap-3 mb-4">
+       <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-2xl">
+        👤
+       </div>
+       <div>
+        <h3 id="patient-name" class="text-white font-bold">Mr. Chen (陳先生)</h3>
+        <p class="text-slate-400 text-sm">85 years old / Male / LTC Room 301</p>
+       </div>
+      </div>
+      <div class="text-slate-300 text-sm bg-slate-700/50 rounded-lg p-3">
+       <p><span class="text-slate-400">Admission Reason:</span> Abdominal pain; suspected GI bleeding</p>
+       <p class="mt-1"><span class="text-slate-400">Medical History:</span> Stroke (Dec 10), Hypertension, BPH</p>
+       <p class="mt-1"><span class="text-slate-400">Current Status:</span> NG tube; dysarthria; recovering mobility</p>
+      </div>
+     </div><!-- Dropdowns -->
+     <div class="space-y-3"><!-- Admission Note -->
+      <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+        <div class="flex items-center gap-2"><span class="text-2xl">📋</span> <span class="text-white font-medium">Admission Note</span>
+        </div>
+        <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg></summary>
+       <div class="px-4 pb-4 space-y-3 text-sm text-slate-300">
+        <div>
+         <p class="text-cyan-400 font-medium mb-1">General Data:</p>
+         <p>Contact History: None | Travel History: None</p>
+         <p>Chief Complaint: Abdominal pain (now subsided); difficulty expectorating sputum</p>
+         <p>Occupation: Former truck driver; retired 20 years</p>
+        </div>
+        <div>
+         <p class="text-cyan-400 font-medium mb-1">Present Illness:</p>
+         <p>85-year-old male admitted Jan 26 with severe abdominal pain and melena. Attributed to dual antiplatelet therapy (Aspirin + Clopidogrel). Both medications were suspended. On Jan 29, Aspirin resumed with Esomeprazole added for GI protection. Acetylcysteine prescribed for sputum clearance.</p>
+        </div>
+        <div>
+         <p class="text-cyan-400 font-medium mb-1">Past History:</p>
+         <p>Stroke (hospitalized Dec 10-22); Hypertension; Benign Prostatic Hyperplasia</p>
+        </div>
+       </div>
+      </details><!-- Nursing Notes -->
+      <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+        <div class="flex items-center gap-2"><span class="text-2xl">📝</span> <span class="text-white font-medium">Nursing Notes</span>
+        </div>
+        <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg></summary>
+       <div class="px-4 pb-4 space-y-3 text-sm text-slate-300">
+        <div>
+         <p class="text-cyan-400 font-medium mb-2">Family Support:</p>
+         <p class="mb-2">The patient's 55-year-old unmarried son works in the telecommunications industry. They previously lived together; however, following the patient's discharge on December 18 of last year, he was placed in a long-term care facility due to his son's shift-work schedule.</p>
+         <p class="mb-2">Despite this, the son visits daily after work, maintaining a close and supportive relationship. The patient has no specific religious beliefs and possesses a stable temperament.</p>
+         <p class="mb-2">Currently, he is conscious and capable of greeting caregivers or engaging in simple, single-word conversations. The primary caregivers are currently the staff at the long-term care facility.</p>
+        </div>
+       </div>
+      </details><!-- Current Medications -->
+      <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+        <div class="flex items-center gap-2"><span class="text-2xl">💊</span> <span class="text-white font-medium">History Medication</span>
+        </div>
+        <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg></summary>
+       <div class="px-4 pb-4 space-y-2">
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Aspirin (Bokey) 100mg</p>
+         <p class="text-slate-300">1 cap QD</p>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Esomeprazole (Nexium) 40mg</p>
+         <p class="text-slate-300">1 tab QD</p>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Acetylcysteine (ACC) effervescent</p>
+         <p class="text-slate-300">1 tab BID</p>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Valsartan (Diovan) 160mg</p>
+         <p class="text-slate-300">1 tab QD</p>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Tamsulosin (Tamlosin D) 0.2mg</p>
+         <p class="text-slate-300">1 tab BID</p>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+         <p class="text-slate-300 font-medium">Levetiracetam (Keppra) 5mL sol</p>
+         <p class="text-slate-300">5mL QD</p>
+        </div>
+       </div>
+      </details><!-- Current Medication List -->
+      <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+        <div class="flex items-center gap-2"><span class="text-2xl">💊</span> <span class="text-white font-medium">Current Medication List</span>
+        </div>
+        <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg></summary>
+       <div class="px-4 pb-4 space-y-4"><!-- Period 1: 1/26 - 1/28 -->
+        <div>
+         <p class="text-slate-300 font-medium mb-3 pb-2 border-b border-slate-600">Medication Period: 1/26 - 1/28</p>
+         <div class="space-y-2">
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Diovan 160mg/Tab (Valsartan): 1# QD</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Harnalidge OCAS 0.4mg/Tab (Tamsulosin): 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Pantoloc 40mg/Vial (Pantoprazole): 1Vial QD</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Famotidine 20mg/Tab: 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Normal Saline 0.9% 250mL/Bag: 1BAG PRN</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">ACC600 Effervescent Tab 600mg/Tab (Acetylcysteine): 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Keppra Oral Solution 100mg/mL, 300mL/Bot (Levetiracetam): 5mL QD</p>
+          </div>
+         </div>
+        </div><!-- Period 2: 1/29 - 2/2 -->
+        <div>
+         <p class="text-slate-300 font-medium mb-3 pb-2 border-b border-slate-600">Medication Period: 1/29 - 2/2</p>
+         <div class="space-y-2">
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Diovan 160mg/Tab (Valsartan): 1# QD</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Harnalidge OCAS 0.4mg/Tab (Tamsulosin): 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Nexium 40mg/Tab (Esomeprazole): 1# QD</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Famotidine 20mg/Tab: 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">ACC600 Effervescent Tab 600mg/Tab (Acetylcysteine): 1# BID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Mubroxol 30mg/Tab (Ambroxol): 1# TID</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Bokey 100mg/Cap (Aspirin): 1# QD</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-sm">
+           <p class="text-slate-300">Keppra Oral Solution 100mg/mL, 300mL/Bot (Levetiracetam): 5mL QD</p>
+          </div>
+         </div>
+        </div>
+       </div>
+       <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+         <div class="flex items-center gap-2"><span class="text-2xl">❤️</span> <span class="text-white font-medium">Vital Signs</span>
+         </div>
+         <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+         </svg></summary>
+        <div class="px-4 pb-4">
+         <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+           <p class="text-slate-400 text-xs">Blood Pressure</p>
+           <p class="text-emerald-400 font-bold vitals-display">138/82</p>
+           <p class="text-slate-500 text-xs">mmHg</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+           <p class="text-slate-400 text-xs">Heart Rate</p>
+           <p class="text-emerald-400 font-bold vitals-display">72</p>
+           <p class="text-slate-500 text-xs">bpm</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+           <p class="text-slate-400 text-xs">Temperature</p>
+           <p class="text-emerald-400 font-bold vitals-display">37.0</p>
+           <p class="text-slate-500 text-xs">°C</p>
+          </div>
+          <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+           <p class="text-slate-400 text-xs">SpO2</p>
+           <p class="text-emerald-400 font-bold vitals-display">95</p>
+           <p class="text-slate-500 text-xs">%</p>
+          </div>
+         </div>
+        </div>
+       </details><!-- Physical Examination & Vitals -->
+       <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+         <div class="flex items-center gap-2"><span class="text-2xl">🏥</span> <span class="text-white font-medium">Physical Examination</span>
+         </div>
+         <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+         </svg></summary>
+        <div class="px-4 pb-4 space-y-3"><!-- Vitals Summary -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">Vital Signs:</p>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">Temperature</p>
+            <p class="text-emerald-400 font-bold">36.6°C</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">HR</p>
+            <p class="text-emerald-400 font-bold">74 bpm</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">RR</p>
+            <p class="text-emerald-400 font-bold">20/min</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">BP</p>
+            <p class="text-emerald-400 font-bold">108/76</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">SpO2</p>
+            <p class="text-emerald-400 font-bold">98%</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-400 text-xs">Pain (VAS)</p>
+            <p class="text-yellow-400 font-bold">7/10</p>
+           </div>
+          </div>
+         </div><!-- General & Anthropometry -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">Anthropometrics:</p>
+          <div class="space-y-1 text-sm text-slate-300">
+           <p><span class="text-slate-400">Height:</span> 177 cm</p>
+           <p><span class="text-slate-400">Weight:</span> 65 kg</p>
+           <p><span class="text-slate-400">BMI:</span> 20.7 kg/m² (normal)</p>
+          </div>
+         </div><!-- System Examination -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">System Examination:</p>
+          <div class="space-y-2 text-sm">
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Respiratory:</span> Bilateral symmetric chest expansion, clear to auscultation, no crackles or wheezing</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Gastrointestinal:</span> Soft abdomen, no tenderness, normal bowel sounds</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Extremities:</span> No pitting edema, peripheral pulses intact</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Cough Function:</span> Preserved (important for aspiration risk assessment)</p>
+           </div>
+          </div>
+         </div><!-- Neurological Examination -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">Neurological Examination:</p>
+          <div class="space-y-2 text-sm">
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Consciousness:</span> Alert (GCS E4V4M6 = 14/15)</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Pupils:</span> 2.5mm bilaterally, reactive to light (RLR +/+)</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Ocular Movements:</span> Free horizontal roving; Doll eye reflex preserved; Corneal reflex intact bilaterally</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Cranial Nerves:</span> No facial asymmetry; nystagmus absent</p>
+           </div>
+           <div class="bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-yellow-400 font-medium">Motor Strength:</span> <span class="text-yellow-300">Left upper/lower 4/5</span> (residual stroke deficits); <span class="text-emerald-300">Right 5/5</span></p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Reflexes:</span> Babinski sign negative bilaterally</p>
+           </div>
+           <div class="bg-slate-700/50 rounded-lg p-2">
+            <p class="text-slate-300"><span class="text-slate-400 font-medium">Speech:</span> Dysarthria (slurred speech—post-stroke sequelae)</p>
+           </div>
+          </div>
+         </div><!-- Current Supportive Devices -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">Supportive Devices:</p>
+          <div class="space-y-1 text-sm">
+           <p class="text-emerald-300">✓ Nasogastric (NG) Tube: Present and functional</p>
+           <p class="text-slate-300">✗ Foley Urinary Catheter: Absent</p>
+          </div>
+         </div>
+        </div>
+       </details>
+       <details class="bg-slate-800 rounded-xl border border-slate-700 group"><summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+         <div class="flex items-center gap-2"><span class="text-2xl">🔬</span> <span class="text-white font-medium">Lab Values</span>
+         </div>
+         <svg class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+         </svg></summary>
+        <div class="px-4 pb-4 space-y-4 text-sm">
+         <!-- Hematology Section -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">1. Hematology (Blood)</p>
+          <div class="overflow-x-auto">
+           <table class="w-full text-slate-300 text-xs border-collapse">
+            <thead>
+             <tr class="bg-slate-700/50">
+              <th class="text-left p-2 border border-slate-600">Test</th>
+              <th class="text-center p-2 border border-slate-600">Jan 26</th>
+              <th class="text-center p-2 border border-slate-600">Jan 29</th>
+              <th class="text-center p-2 border border-slate-600">Normal Range</th>
+             </tr>
+            </thead>
+            <tbody>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">WBC</td>
+              <td class="text-center p-2 border border-slate-600">7.6</td>
+              <td class="text-center p-2 border border-slate-600">6.2</td>
+              <td class="text-center p-2 border border-slate-600">4.5-11.0</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">RBC</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">3.0</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">3.2</span></td>
+              <td class="text-center p-2 border border-slate-600">4.5-5.5</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Hemoglobin (Hb)</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">9.8</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">10.4</span></td>
+              <td class="text-center p-2 border border-slate-600">13.5-17.5</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Hematocrit (Hct)</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">29.5%</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">31.0%</span></td>
+              <td class="text-center p-2 border border-slate-600">40-50%</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Platelets (PLT)</td>
+              <td class="text-center p-2 border border-slate-600">192</td>
+              <td class="text-center p-2 border border-slate-600 bg-yellow-900/30"><span class="text-yellow-400">164</span></td>
+              <td class="text-center p-2 border border-slate-600">150-400</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Neutrophils (Seg)</td>
+              <td class="text-center p-2 border border-slate-600">79.6%</td>
+              <td class="text-center p-2 border border-slate-600">69.7%</td>
+              <td class="text-center p-2 border border-slate-600">50-70%</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Lymphocytes</td>
+              <td class="text-center p-2 border border-slate-600">14.3%</td>
+              <td class="text-center p-2 border border-slate-600">19.5%</td>
+              <td class="text-center p-2 border border-slate-600">20-40%</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Reticulocytes</td>
+              <td class="text-center p-2 border border-slate-600">3.5%</td>
+              <td class="text-center p-2 border border-slate-600">4.2%</td>
+              <td class="text-center p-2 border border-slate-600">0.5-2.5%</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Serum Iron</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">38</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">42</span></td>
+              <td class="text-center p-2 border border-slate-600">60-170</td>
+             </tr>
+             <tr>
+              <td class="p-2 border border-slate-600">Ferritin</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">22</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">24</span></td>
+              <td class="text-center p-2 border border-slate-600">30-300</td>
+             </tr>
+            </tbody>
+           </table>
+          </div>
+         </div><!-- GI Bleeding Section -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">2. GI Bleeding Markers</p>
+          <div class="overflow-x-auto">
+           <table class="w-full text-slate-300 text-xs border-collapse">
+            <thead>
+             <tr class="bg-slate-700/50">
+              <th class="text-left p-2 border border-slate-600">Test</th>
+              <th class="text-center p-2 border border-slate-600">Jan 26</th>
+              <th class="text-center p-2 border border-slate-600">Jan 29</th>
+              <th class="text-center p-2 border border-slate-600">Normal</th>
+             </tr>
+            </thead>
+            <tbody>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">FOBT (Fecal Occult Blood)</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">+++ (Positive)</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-yellow-900/30"><span class="text-yellow-400">+ (Weak Positive)</span></td>
+              <td class="text-center p-2 border border-slate-600">Negative</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Stool Appearance</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">Tarry (Melena)</span></td>
+              <td class="text-center p-2 border border-slate-600">Black</td>
+              <td class="text-center p-2 border border-slate-600">Brown</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">PT/INR</td>
+              <td class="text-center p-2 border border-slate-600">1.2</td>
+              <td class="text-center p-2 border border-slate-600">1.2</td>
+              <td class="text-center p-2 border border-slate-600">0.8-1.1</td>
+             </tr>
+             <tr>
+              <td class="p-2 border border-slate-600">aPTT</td>
+              <td class="text-center p-2 border border-slate-600">34 sec</td>
+              <td class="text-center p-2 border border-slate-600">33 sec</td>
+              <td class="text-center p-2 border border-slate-600">25-35 sec</td>
+             </tr>
+            </tbody>
+           </table>
+          </div>
+         </div><!-- Biochemistry Section -->
+         <div>
+          <p class="text-cyan-400 font-medium mb-2">3. Biochemistry &amp; Renal Function</p>
+          <div class="overflow-x-auto">
+           <table class="w-full text-slate-300 text-xs border-collapse">
+            <thead>
+             <tr class="bg-slate-700/50">
+              <th class="text-left p-2 border border-slate-600">Test</th>
+              <th class="text-center p-2 border border-slate-600">Jan 26</th>
+              <th class="text-center p-2 border border-slate-600">Jan 29</th>
+              <th class="text-center p-2 border border-slate-600">Normal Range</th>
+             </tr>
+            </thead>
+            <tbody>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Total Cholesterol</td>
+              <td class="text-center p-2 border border-slate-600">175</td>
+              <td class="text-center p-2 border border-slate-600">N/M</td>
+              <td class="text-center p-2 border border-slate-600">&lt;200</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Triglycerides</td>
+              <td class="text-center p-2 border border-slate-600">140</td>
+              <td class="text-center p-2 border border-slate-600">N/M</td>
+              <td class="text-center p-2 border border-slate-600">&lt;150</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">HbA1c</td>
+              <td class="text-center p-2 border border-slate-600">7.0%</td>
+              <td class="text-center p-2 border border-slate-600">N/M</td>
+              <td class="text-center p-2 border border-slate-600">&lt;5.7%</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Uric Acid</td>
+              <td class="text-center p-2 border border-slate-600">7.2</td>
+              <td class="text-center p-2 border border-slate-600">6.6</td>
+              <td class="text-center p-2 border border-slate-600">3.5-7.2</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">BUN (Blood Urea Nitrogen)</td>
+              <td class="text-center p-2 border border-slate-600 bg-red-900/30"><span class="text-red-400">34</span></td>
+              <td class="text-center p-2 border border-slate-600 bg-yellow-900/30"><span class="text-yellow-400">26</span></td>
+              <td class="text-center p-2 border border-slate-600">7-20</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Creatinine</td>
+              <td class="text-center p-2 border border-slate-600">0.9</td>
+              <td class="text-center p-2 border border-slate-600">0.9</td>
+              <td class="text-center p-2 border border-slate-600">0.7-1.3</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">eGFR</td>
+              <td class="text-center p-2 border border-slate-600">84</td>
+              <td class="text-center p-2 border border-slate-600">84</td>
+              <td class="text-center p-2 border border-slate-600">&gt;60</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">AST</td>
+              <td class="text-center p-2 border border-slate-600">23</td>
+              <td class="text-center p-2 border border-slate-600">22</td>
+              <td class="text-center p-2 border border-slate-600">10-40</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">ALT</td>
+              <td class="text-center p-2 border border-slate-600">26</td>
+              <td class="text-center p-2 border border-slate-600">25</td>
+              <td class="text-center p-2 border border-slate-600">7-56</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Sodium (Na)</td>
+              <td class="text-center p-2 border border-slate-600">137</td>
+              <td class="text-center p-2 border border-slate-600">138</td>
+              <td class="text-center p-2 border border-slate-600">135-145</td>
+             </tr>
+             <tr class="border-b border-slate-600">
+              <td class="p-2 border border-slate-600">Potassium (K)</td>
+              <td class="text-center p-2 border border-slate-600">4.3</td>
+              <td class="text-center p-2 border border-slate-600">4.2</td>
+              <td class="text-center p-2 border border-slate-600">3.5-5.0</td>
+             </tr>
+             <tr>
+              <td class="p-2 border border-slate-600">Albumin</td>
+              <td class="text-center p-2 border border-slate-600">4.5</td>
+              <td class="text-center p-2 border border-slate-600">4.3</td>
+              <td class="text-center p-2 border border-slate-600">3.4-5.4</td>
+             </tr>
+            </tbody>
+           </table>
+          </div>
+         </div>
+         <div class="bg-slate-700/50 rounded-lg p-3 text-xs text-slate-400 mt-2">
+          <p><strong>N/M:</strong> Not measured | <span class="text-emerald-300">Green values:</span> Within normal range | <span class="text-yellow-400">Yellow values:</span> Mild elevation/decrease | <span class="text-red-400">Red values:</span> Clinically significant abnormality</p>
+         </div>
+        </div>
+       </details>
+      </details>
+     </div>
+    </aside><!-- Center - Hospital Room Scene -->
+    <section class="flex-1 flex flex-col min-h-0"><!-- Scene -->
+     <div class="bg-gradient-to-b from-slate-700 to-slate-800 rounded-2xl flex-1 relative overflow-hidden border border-slate-600 min-h-[300px]"><!-- Room Background Elements -->
+      <div class="absolute inset-0"><!-- Window -->
+       <div class="absolute top-4 left-4 w-32 h-24 bg-gradient-to-b from-sky-300 to-sky-400 rounded-lg border-4 border-slate-500 opacity-60"></div><!-- IV Stand -->
+       <div class="absolute top-8 right-1/4 flex flex-col items-center">
+        <div class="w-1 h-24 bg-slate-400"></div>
+        <div class="w-8 h-12 bg-slate-300 rounded-b-lg relative">
+         <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-6 bg-yellow-200 rounded-full border-2 border-slate-400"></div>
+        </div>
+        <div class="w-px h-16 bg-blue-300 opacity-50"></div>
+       </div>
+      </div><!-- Patient Bed -->
+      <div class="absolute bottom-12 left-1/2 -translate-x-1/2 w-64"><!-- Bed Frame -->
+       <div class="bg-slate-500 h-4 rounded-t-lg"></div>
+       <div class="bg-white h-20 rounded-lg relative"><!-- Pillow -->
+        <div class="absolute top-2 left-2 w-16 h-12 bg-slate-100 rounded-lg shadow-inner"></div><!-- Patient -->
+        <div class="absolute top-1 left-4 text-4xl">
+         😴
+        </div><!-- Blanket -->
+        <div class="absolute bottom-0 right-0 w-48 h-14 bg-gradient-to-r from-teal-200 to-teal-300 rounded-br-lg rounded-tl-3xl"></div>
+       </div><!-- Bed Legs -->
+       <div class="flex justify-between px-4">
+        <div class="w-3 h-6 bg-slate-600 rounded-b"></div>
+        <div class="w-3 h-6 bg-slate-600 rounded-b"></div>
+       </div>
+      </div><!-- Monitor --> <button onclick="startQuizMode()" class="absolute top-16 right-8 w-24 h-20 bg-slate-900 rounded-lg border-2 border-slate-600 p-2 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/50 transition-all cursor-pointer group">
+       <svg class="w-full h-8" viewbox="0 0 100 30"><path class="ecg-line" d="M0,15 L20,15 L25,5 L30,25 L35,15 L100,15" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="100" />
+       </svg>
+       <div class="text-emerald-400 text-xs font-mono text-center mt-1 group-hover:text-emerald-300 transition-colors">
+        Click for cases
+       </div></button><!-- Characters - Interactive -->
+      <div class="absolute bottom-8 left-8 character-hover cursor-pointer" id="doctor-char" onclick="startDialogue('doctor')">
+       <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-3xl shadow-lg border-4 border-white pulse-gentle">
+         👨‍⚕️
+        </div><span class="mt-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow">Physician</span> <span class="text-slate-300 text-xs mt-1">Click to talk</span>
+       </div>
+      </div>
+      <div class="absolute bottom-8 right-8 character-hover cursor-pointer" id="caregiver-char" onclick="startDialogue('caregiver')">
+       <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-3xl shadow-lg border-4 border-white pulse-gentle">
+         👨
+        </div><span class="mt-2 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow">Caregiver</span> <span class="text-slate-300 text-xs mt-1">Click to talk</span>
+       </div>
+      </div><!-- Pharmacist (Player) Indicator -->
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
+       <div class="flex flex-col items-center">
+        <div class="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-2xl shadow-lg border-4 border-yellow-400">
+         💊
+        </div><span class="mt-2 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow">You (Pharmacist)</span>
+       </div>
+      </div><!-- Instruction Overlay -->
+      <div id="instruction-overlay" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur rounded-xl px-6 py-3 border border-teal-500/50">
+       <p class="text-teal-400 text-sm text-center">👆 Click <span class="text-blue-400 font-bold">Physician</span> to start dialogue</p>
+      </div>
+     </div><!-- Dialogue Box -->
+     <div id="dialogue-box" class="mt-4 bg-slate-800 rounded-2xl border border-slate-700 p-5 hidden dialogue-enter"><!-- Speaker -->
+      <div id="speaker-info" class="flex items-center gap-3 mb-4">
+       <div id="speaker-avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-2xl"></div>
+       <div>
+        <p id="speaker-name" class="text-white font-bold"></p>
+        <p id="speaker-role" class="text-slate-400 text-sm"></p>
+       </div>
+      </div><!-- Question -->
+      <div id="dialogue-question" class="bg-slate-700/50 rounded-xl p-4 mb-4">
+       <p id="question-text" class="text-white leading-relaxed"></p>
+      </div><!-- Answer Options -->
+      <div id="answer-options" class="space-y-3"><!-- Options will be inserted here -->
+      </div><!-- Feedback -->
+      <div id="feedback-box" class="hidden mt-4 rounded-xl p-4">
+       <div class="flex items-start gap-3"><span id="feedback-icon" class="text-2xl"></span>
+        <div>
+         <p id="feedback-title" class="font-bold mb-1"></p>
+         <p id="feedback-text" class="text-sm leading-relaxed"></p>
+        </div>
+       </div><button onclick="continueLearning()" class="mt-4 w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors"> Continue Learning </button>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      patient_name: '陳大明',
+      scenario_title: '藥事照護案例-吞嚥與咀嚼困難病人(鼻胃管)',
+      background_color: '#0f172a',
+      surface_color: '#1e293b',
+      text_color: '#f1f5f9',
+      primary_action_color: '#0d9488',
+      secondary_action_color: '#0891b2',
+      font_family: 'Noto Sans TC',
+      font_size: 16
+    };
+
+    let config = { ...defaultConfig };
+    let completedDialogues = new Set();
+    let currentDialogue = null;
+    let caregiverStage = 'caregiver'; // Track which caregiver dialogue stage we're in
+
+    // Dialogue data with multi-layer interaction
+    const dialogues = {
+      caregiver_reject: {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: 'I appreciate you wanting to talk, but I\'m not a doctor. You should speak with the Physician first about the clinical aspects of my father\'s care. Once you have those answers, I\'d be happy to discuss how we can best care for him at home.',
+        options: [
+          {
+            text: 'Understood. Let me speak with the Physician first.',
+            correct: true,
+            feedback: 'Good idea! Start with the medical team to understand all clinical decisions.',
+            isEndResponse: true
+          }
+        ]
+      },
+      doctor: {
+        speaker: 'Dr. Liu',
+        role: 'Attending Physician',
+        avatar: '👨‍⚕️',
+        avatarBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+        question: 'Pharmacist, can all the medications on 1/29 be administered via NG tube?',
+        stage: 1,
+        options: [
+          {
+            text: 'All these medications have no issues and can be given via NG tube',
+            correct: false,
+            feedback: 'Wrong!',
+            isWrong: true,
+            stayOnStage: 'doctor'
+          },
+          {
+            text: 'Some medications need adjustment',
+            correct: true,
+            feedback: 'Which one needs adjustment?',
+            nextStage: 'physician-which'
+          }
+        ]
+      },
+      caregiver: {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: 'Pharmacist, my father will be discharged on February 2nd if he continues improving. The doctor mentioned he might be able to eat orally with a thickener since the NG tube may be removed. We\'re worried because he had a stroke and has trouble swallowing. Can you explain how to use the thickener properly and what we need to watch for?',
+        options: [
+          {
+            text: 'The thickener increases fluid viscosity to slow down bolus movement, giving your father more time to swallow safely. Start with pureed foods thickened to "pudding" consistency. Always have him upright when eating, never lie down immediately after. Watch for coughing, choking, or difficulty breathing—signs of aspiration. Ensure small, frequent meals and have suction available at home.',
+            correct: true,
+            feedback: 'Perfect! You\'ve provided comprehensive dysphagia management education. Key points: viscosity adjustment reduces aspiration risk, positioning is critical, and early detection of aspiration signs is essential. Family education is vital for safe discharge. Given the patient\'s post-stroke dysarthria and swallowing difficulty, this guidance directly prevents aspiration pneumonia—a major complication in elderly post-stroke patients.'
+          },
+          {
+            text: 'Just add the thickener powder to all his meals and drinks. It doesn\'t matter what consistency—he\'ll get used to it eventually.',
+            correct: false,
+            feedback: 'Wrong!',
+            isWrong: true,
+            stayOnStage: 'caregiver'
+          },
+          {
+            text: 'The thickener will make him choke more, so just skip it and give him regular food.',
+            correct: false,
+            feedback: 'Wrong!',
+            isWrong: true,
+            stayOnStage: 'caregiver'
+          }
+        ]
+      },
+      bonus: {
+        speaker: 'Dr. Liu',
+        role: 'Attending Physician',
+        avatar: '👨‍⚕️',
+        avatarBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+        question: 'Before discharge, I wanted to discuss the drug selection again. The patient originally took both Aspirin AND Clopidogrel for his stroke prevention. Now we\'re only on Aspirin with gastroprotection. How should I counsel the patient about why we\'re not restarting Clopidogrel, and what should we monitor going forward?',
+        options: [
+          {
+            text: 'Dual antiplatelet therapy (Aspirin + Clopidogrel) significantly increased his GI bleeding risk, especially in an elderly patient. Since his stroke occurred over a month ago and the acute phase has passed, single antiplatelet therapy (Aspirin alone) provides reasonable stroke prevention with substantially lower bleeding risk. Monitor for signs of recurrent stroke and GI bleeding. Re-evaluate dual therapy only if he has a new ischemic event.',
+            correct: true,
+            feedback: 'Excellent clinical reasoning! Balancing stroke prevention against GI bleeding risk is key in elderly post-stroke patients. Single antiplatelet therapy is often appropriate after the acute stroke phase, especially when GI bleeding has occurred. The gastroprotective Esomeprazole further reduces GI risk. Continue monitoring for both recurrent stroke symptoms and GI bleeding signs. Document this risk-benefit discussion clearly.'
+          },
+          {
+            text: 'Dual therapy was unnecessary anyway. Just stick with Aspirin indefinitely—nothing else is needed.',
+            correct: false,
+            feedback: 'While Aspirin monotherapy is reasonable post-stroke, be aware that dual therapy is sometimes indicated for specific stroke subtypes or recurrent events despite monotherapy. The decision to de-escalate should be based on individual stroke characteristics and bleeding risk assessment. Document the reasoning clearly.'
+          },
+          {
+            text: 'We should restart Clopidogrel immediately to prevent another stroke, regardless of GI bleeding risk.',
+            correct: false,
+            feedback: 'This ignores the patient\'s current bleeding risk. He just experienced GI bleeding from dual therapy. Restarting Clopidogrel without compelling indication significantly increases re-bleeding risk. The current regimen (Aspirin + Esomeprazole) is safer. Only restart dual therapy if there\'s a new ischemic event despite Aspirin monotherapy.'
+          }
+        ]
+      },
+      // Multi-stage physician dialogue branches
+      'physician-which': {
+        speaker: 'Dr. Liu',
+        role: 'Attending Physician',
+        avatar: '👨‍⚕️',
+        avatarBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+        question: 'Which medication needs adjustment?',
+        stage: 2,
+        isResponse: true,
+        options: [
+          {
+            text: 'Diovan 160mg/Tab (Valsartan)',
+            correct: false,
+            feedback: 'Wrong!',
+            isWrong: true,
+            stayOnStage: 'physician-which'
+          },
+          {
+            text: 'Harnalidge OCAS 0.4mg/Tab (Tamsulosin)',
+            correct: true,
+            feedback: 'Correct! Now, what\'s the reason for adjustment?',
+            nextStage: 'physician-reason'
+          },
+          {
+            text: 'Nexium 40mg/Tab (Esomeprazole)',
+            correct: false,
+            feedback: 'Wrong!',
+            isWrong: true,
+            stayOnStage: 'physician-which'
+          }
+        ]
+      },
+      'physician-reason': {
+        speaker: 'Dr. Liu',
+        role: 'Attending Physician',
+        avatar: '👨‍⚕️',
+        avatarBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+        question: 'What\'s the reason for adjustment?',
+        stage: 3,
+        isResponse: true,
+        options: [
+          {
+            text: 'The dosage form is not suitable for crushing',
+            correct: false,
+            feedback: 'Wrong! That\'s only part of the issue.',
+            isWrong: true,
+            stayOnStage: 'physician-reason'
+          },
+          {
+            text: 'The dosage is incorrect',
+            correct: false,
+            feedback: 'Wrong! That\'s only part of the issue.',
+            isWrong: true,
+            stayOnStage: 'physician-reason'
+          },
+          {
+            text: 'The dosage form is not suitable for crushing AND the dosage is incorrect',
+            correct: true,
+            feedback: 'Bingo! Harnalidge OCAS is an extended-release formulation that cannot be crushed as it would destroy the controlled-release mechanism. Additionally, the prescribed dose of 0.4mg is incorrect for NG tube administration via Harnalidge OCAS—it should be adjusted to an immediate-release formulation at the appropriate dose (typically 0.2mg BID). Excellent clinical catch!\n\nNow please speak with the caregiver about how to use the thickener properly to prevent aspiration when the patient transitions to oral feeding after NG tube removal.',
+            isCorrect: true,
+            nextStage: 'caregiver-end'
+          }
+        ]
+      },
+      'caregiver-end': {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: 'Pharmacist, my father will be discharged on February 2nd if he continues improving. The doctor mentioned he might be able to eat orally with a thickener since the NG tube may be removed. We\'re worried because he had a stroke and has trouble swallowing. Can you explain how to use the thickener properly and what we need to watch for?',
+        isPhysicianEndStage: true,
+        options: [
+          {
+            text: 'The thickener increases fluid viscosity to slow down bolus movement, giving your father more time to swallow safely. Start with pureed foods thickened to "pudding" consistency. Always have him upright when eating, never lie down immediately after. Watch for coughing, choking, or difficulty breathing—signs of aspiration. Ensure small, frequent meals and have suction available at home.',
+            correct: true,
+            feedback: 'Perfect! You\'ve provided comprehensive dysphagia management education. Key points: viscosity adjustment reduces aspiration risk, positioning is critical, and early detection of aspiration signs is essential. Family education is vital for safe discharge. Given the patient\'s post-stroke dysarthria and swallowing difficulty, this guidance directly prevents aspiration pneumonia—a major complication in elderly post-stroke patients.',
+            nextStage: 'caregiver-question2'
+          },
+          {
+            text: 'Just add the thickener powder to all his meals and drinks. It doesn\'t matter what consistency—he\'ll get used to it eventually.',
+            correct: false,
+            feedback: 'Wrong! Proper viscosity management is critical. You must start with correct consistency (pudding-like) and monitor carefully. Your father won\'t "get used to it"—improper thickener use increases aspiration risk significantly.',
+            isWrong: true,
+            stayOnStage: 'caregiver-end'
+          },
+          {
+            text: 'The thickener will make him choke more, so just skip it and give him regular food.',
+            correct: false,
+            feedback: 'Wrong! This is dangerous. Thickeners PREVENT choking and aspiration in stroke patients with swallowing difficulties. Skipping the thickener would greatly increase his risk of aspiration pneumonia.',
+            isWrong: true,
+            stayOnStage: 'caregiver-end'
+          }
+        ]
+      },
+      'caregiver-question2': {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: 'I\'ve heard about some practices regarding thickeners and medications. Which of the following statements is WRONG?',
+        options: [
+          {
+            text: 'Thickeners make all medications safe for administration.',
+            correct: true,
+            feedback: 'Correct! Thickeners do NOT make all medications safe. Some medications (especially extended-release or enteric-coated formulations) cannot be crushed or modified, even with thickeners. This is a critical safety point!',
+            nextStage: 'caregiver-scene'
+          },
+          {
+            text: 'Thickeners only assist with swallowing and do not change the dosage form.',
+            correct: false,
+            feedback: 'Wrong! This statement is actually correct—thickeners DO only assist with swallowing without changing dosage forms. You need to identify which statement is WRONG, not correct.',
+            isWrong: true,
+            stayOnStage: 'caregiver-question2'
+          },
+          {
+            text: 'Medications that should not be crushed still cannot be crushed, even when using thickeners.',
+            correct: false,
+            feedback: 'Wrong! This statement is actually correct—medications with contraindications to crushing (extended-release, enteric-coated) cannot be crushed regardless of thickeners. You need to find the statement that IS wrong.',
+            isWrong: true,
+            stayOnStage: 'caregiver-question2'
+          }
+        ]
+      },
+      'caregiver-scene': {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: '⚠️ SCENE: The caregiver turns around and pulls out an Aspirin bottle, opening the capsule to crush it. What should you do?',
+        isSceneIntervention: true,
+        options: [
+          {
+            text: 'Remember to add the thickener to the crushed aspirin.',
+            correct: false,
+            feedback: 'Wrong! While thickener is important, you\'re missing the critical safety issue here. Aspirin capsules should NOT be crushed. You must STOP this action immediately and explain proper medication handling!',
+            isWrong: true,
+            stayOnStage: 'caregiver-scene'
+          },
+          {
+            text: 'Stop! Opening the capsule is okay, but the granules inside should NOT be crushed. For NG tube administration, we can open the capsule and pour the granules directly into the tube with water. We need to flush properly before and after to prevent tube blockage. Let me show you the correct method.',
+            correct: true,
+            feedback: 'Excellent intervention! You\'ve prevented a medication error while demonstrating proper knowledge. You correctly identified that opening the capsule is acceptable, but crushing the granules would damage the medication formulation. More importantly, you immediately offered the correct alternative method for NG tube administration. This is exactly the kind of professional guidance that prevents adverse events.',
+            nextStage: 'caregiver-aspirin-ng'
+          }
+        ]
+      },
+      'caregiver-aspirin-ng': {
+        speaker: 'Mr. Chen (Patient\'s son)',
+        role: 'Primary Caregiver',
+        avatar: '👨',
+        avatarBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+        question: 'Thank you for stopping me! Now I\'m confused—how should we give Aspirin through the NG tube then? What\'s the proper method?',
+        options: [
+          {
+            text: 'Open the capsule and pour the granules directly into the NG tube (without crushing) mixed with water. Flush the NG tube with 10-15 mL of water before administration, then again with 10-15 mL of water after administration to ensure all granules pass through. Elevate the head of the bed to 30 degrees for 30 minutes after administration.',
+            correct: true,
+            feedback: 'Perfect! This is the correct approach for Aspirin capsules via NG tube. Key points: (1) Opening the capsule is acceptable—just don\'t crush the granules, as they may have delayed-release properties; (2) The granules can flow through an appropriately-sized NG tube intact; (3) Pre- and post-flushing with adequate water volume ensures the granules pass through completely and prevents tube occlusion; (4) Head elevation optimizes gastric emptying and reduces reflux risk. This demonstrates proper NG tube medication administration technique while respecting the medication\'s formulation integrity—critical for preventing tube complications and ensuring medication efficacy in elderly post-stroke patients.',
+            isFinalCorrect: true
+          },
+          {
+            text: 'Crush the Aspirin granules into powder, mix it with applesauce to make it palatable, and administer through the NG tube with minimal flushing.',
+            correct: false,
+            feedback: 'Wrong! Crushing the granules destroys the medication formulation. Additionally, mixing with applesauce creates a thick consistency that can clog the NG tube, and minimal flushing increases occlusion risk. Always preserve the medication form and use adequate flushing volumes.',
+            isWrong: true,
+            stayOnStage: 'caregiver-aspirin-ng'
+          },
+          {
+            text: 'Use a liquid antacid suspension instead of Aspirin to reduce gastric irritation, then use smaller flushing volumes to conserve water.',
+            correct: false,
+            feedback: 'Wrong! Substituting medications without physician approval is inappropriate and changes the therapeutic plan. The patient specifically needs Aspirin for stroke prevention. Additionally, smaller flushing volumes increase tube occlusion risk. Always administer the prescribed medication using proper technique and adequate flushing volumes.',
+            isWrong: true,
+            stayOnStage: 'caregiver-aspirin-ng'
+          }
+        ]
+      }
+    };
+
+    // Initialize SDK
+    async function initializeApp() {
+      if (window.elementSdk) {
+        await window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...defaultConfig, ...newConfig };
+            applyConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              {
+                get: () => cfg.background_color || defaultConfig.background_color,
+                set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+              },
+              {
+                get: () => cfg.surface_color || defaultConfig.surface_color,
+                set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+              },
+              {
+                get: () => cfg.text_color || defaultConfig.text_color,
+                set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+              },
+              {
+                get: () => cfg.primary_action_color || defaultConfig.primary_action_color,
+                set: (v) => { cfg.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); }
+              },
+              {
+                get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color,
+                set: (v) => { cfg.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); }
+              }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (v) => { cfg.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+            },
+            fontSizeable: {
+              get: () => cfg.font_size || defaultConfig.font_size,
+              set: (v) => { cfg.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+            }
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ['patient_name', cfg.patient_name || defaultConfig.patient_name],
+            ['scenario_title', cfg.scenario_title || defaultConfig.scenario_title]
+          ])
+        });
+      }
+      applyConfig();
+    }
+
+    function applyConfig() {
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const fontSize = config.font_size || defaultConfig.font_size;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+
+      document.body.style.backgroundColor = bgColor;
+      document.body.style.fontFamily = `${fontFamily}, sans-serif`;
+      document.body.style.fontSize = `${fontSize}px`;
+
+      const patientNameEl = document.getElementById('patient-name');
+      if (patientNameEl) {
+        patientNameEl.textContent = config.patient_name || defaultConfig.patient_name;
+      }
+
+      const scenarioTitleEl = document.getElementById('scenario-title');
+      if (scenarioTitleEl) {
+        scenarioTitleEl.textContent = config.scenario_title || defaultConfig.scenario_title;
+      }
+    }
+
+    function startDialogue(character) {
+      let dialogueKey = character;
+      
+      // If caregiver is clicked and physician dialogue hasn't been completed, show rejection
+      if (character === 'caregiver' && !completedDialogues.has('doctor')) {
+        dialogueKey = 'caregiver_reject';
+      }
+      
+      // Track caregiver stage for multi-part dialogues
+      if (character.startsWith('caregiver')) {
+        caregiverStage = character;
+      }
+      
+      const dialogue = dialogues[dialogueKey];
+      if (!dialogue) return;
+
+      currentDialogue = character;
+
+      document.getElementById('instruction-overlay').classList.add('hidden');
+      
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.classList.remove('hidden');
+      dialogueBox.classList.add('dialogue-enter');
+
+      const avatar = document.getElementById('speaker-avatar');
+      avatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-2xl ${dialogue.avatarBg}`;
+      avatar.textContent = dialogue.avatar;
+
+      document.getElementById('speaker-name').textContent = dialogue.speaker;
+      document.getElementById('speaker-role').textContent = dialogue.role;
+      document.getElementById('question-text').textContent = dialogue.question;
+
+      const optionsContainer = document.getElementById('answer-options');
+      optionsContainer.innerHTML = '';
+      optionsContainer.classList.remove('hidden');
+
+      dialogue.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn w-full text-left bg-slate-700 hover:bg-slate-600 border border-slate-600 hover:border-teal-500 rounded-xl p-4 transition-all group';
+        btn.innerHTML = `
+          <div class="flex items-start gap-3">
+            <span class="flex-shrink-0 w-8 h-8 bg-teal-600 group-hover:bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm transition-colors">
+              ${String.fromCharCode(65 + index)}
+            </span>
+            <p class="text-slate-200 leading-relaxed">${option.text}</p>
+          </div>
+        `;
+        btn.onclick = () => selectAnswer(index, dialogueKey);
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('feedback-box').classList.add('hidden');
+    }
+
+    function selectAnswer(index, character) {
+      const dialogue = dialogues[character];
+      const option = dialogue.options[index];
+
+      document.getElementById('answer-options').classList.add('hidden');
+
+      const feedbackBox = document.getElementById('feedback-box');
+      feedbackBox.classList.remove('hidden');
+
+      // Play frustration sound on wrong answer for caregiver dialogues
+      if (option.isWrong && character.startsWith('caregiver')) {
+        playFrustrationSound();
+      }
+
+      // Check if this is an end response that should close the dialogue
+      if (option.isEndResponse) {
+        feedbackBox.className = 'mt-4 rounded-xl p-4 bg-slate-700/50 border border-slate-600';
+        document.getElementById('feedback-icon').textContent = '✓';
+        document.getElementById('feedback-title').className = 'font-bold mb-1 text-slate-300';
+        document.getElementById('feedback-title').textContent = 'Understood';
+        document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-slate-200';
+        document.getElementById('feedback-text').textContent = option.feedback;
+
+        const continueBtn = feedbackBox.querySelector('button');
+        if (continueBtn) {
+          continueBtn.textContent = 'Back to Start';
+          continueBtn.onclick = continueLearning;
+        }
+        return;
+      }
+
+      // Check if this is a final correct answer (scene intervention)
+      if (option.isFinalCorrect) {
+        feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
+        document.getElementById('feedback-icon').textContent = '✅';
+        document.getElementById('feedback-title').className = 'font-bold mb-1 text-emerald-400';
+        document.getElementById('feedback-title').textContent = 'Excellent!';
+        document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
+
+        if (!completedDialogues.has('caregiver-complete')) {
+          completedDialogues.add('caregiver-complete');
+          updateProgress();
+        }
+
+        document.getElementById('feedback-text').textContent = option.feedback;
+
+        const continueBtn = feedbackBox.querySelector('button');
+        if (continueBtn) {
+          continueBtn.textContent = 'Continue Learning';
+          continueBtn.onclick = continueLearning;
+        }
+        return;
+      }
+
+      // Check if this is a wrong answer that should stay on the same stage
+      if (option.isWrong || !option.correct) {
+        // Only treat as wrong if explicitly marked isWrong OR if not correct and no nextStage
+        if (option.isWrong || (!option.correct && !option.nextStage)) {
+          feedbackBox.className = 'mt-4 rounded-xl p-4 bg-amber-900/50 border border-amber-700';
+          document.getElementById('feedback-icon').textContent = '❌';
+          document.getElementById('feedback-title').className = 'font-bold mb-1 text-amber-400';
+          document.getElementById('feedback-title').textContent = 'Not quite...';
+          document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-amber-200';
+          document.getElementById('feedback-text').textContent = option.feedback;
+
+          const continueBtn = feedbackBox.querySelector('button');
+          if (continueBtn) {
+            continueBtn.textContent = 'Try Again';
+            continueBtn.onclick = () => {
+              setTimeout(() => {
+                const stageToUse = option.stayOnStage || character;
+                startDialogue(stageToUse);
+              }, 300);
+            };
+          }
+          return;
+        }
+      }
+
+      // Handle correct intermediate answer with nextStage
+      if (option.correct && option.nextStage) {
+        feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
+        document.getElementById('feedback-icon').textContent = '✅';
+        document.getElementById('feedback-title').className = 'font-bold mb-1 text-emerald-400';
+        document.getElementById('feedback-title').textContent = 'Correct!';
+        document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
+        document.getElementById('feedback-text').textContent = option.feedback;
+
+        const continueBtn = feedbackBox.querySelector('button');
+        if (continueBtn) {
+          continueBtn.textContent = 'Next';
+          continueBtn.onclick = () => {
+            setTimeout(() => {
+              startDialogue(option.nextStage);
+            }, 300);
+          };
+        }
+        return;
+      }
+
+      // Handle correct answer without nextStage
+      if (option.correct) {
+        feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
+        document.getElementById('feedback-icon').textContent = '✅';
+        document.getElementById('feedback-title').className = 'font-bold mb-1 text-emerald-400';
+        document.getElementById('feedback-title').textContent = 'Correct!';
+        document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
+        document.getElementById('feedback-text').textContent = option.feedback;
+
+        const continueBtn = feedbackBox.querySelector('button');
+        if (continueBtn) {
+          continueBtn.textContent = 'Continue Learning';
+          continueBtn.onclick = continueLearning;
+        }
+        return;
+      }
+    }
+
+    function playFrustrationSound() {
+      // Create a simple audio context to play a sound without needing external audio files
+      const utterance = new SpeechSynthesisUtterance('Are you the real pharmacist?');
+      utterance.rate = 0.8;
+      utterance.pitch = 1.2;
+      utterance.volume = 0.6;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function continueLearning() {
+      document.getElementById('dialogue-box').classList.add('hidden');
+      document.getElementById('instruction-overlay').classList.remove('hidden');
+
+      if (completedDialogues.length >= 2 && !completedDialogues.includes('bonus')) {
+        dialogues['caregiver'] = dialogues['bonus'];
+        document.querySelector('#caregiver-char span:nth-child(2)').textContent = '病人';
+        document.querySelector('#caregiver-char .text-3xl').textContent = '🤒';
+      }
+    }
+
+    function updateProgress() {
+      const total = 4;
+      document.getElementById('progress-text').textContent = `${completedDialogues.size} / ${total}`;
+
+      if (completedDialogues.size >= total) {
+        showCompletion();
+      }
+    }
+
+    function showCompletion() {
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.classList.remove('hidden');
+      dialogueBox.innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-6xl mb-4">🎉</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Congratulations—Learning Complete!</h2>
+          <p class="text-slate-300 mb-6">You've successfully completed all dialogue scenarios</p>
+          <div class="bg-slate-700/50 rounded-xl p-4 text-left">
+            <h3 class="text-teal-400 font-bold mb-3">📚 Key Learning Points</h3>
+            <ul class="text-slate-300 text-sm space-y-2">
+              <li>✓ Post-GI bleeding: Balance antiplatelet therapy with gastroprotection in elderly patients</li>
+              <li>✓ Acetylcysteine requires adequate hydration; monitor renal function carefully</li>
+              <li>✓ Dysphagia management: Thickener viscosity is critical for aspiration prevention</li>
+              <li>✓ De-escalation of dual antiplatelet therapy is appropriate after acute stroke phase</li>
+              <li>✓ NG tube medication administration: Proper flushing technique prevents tube occlusion</li>
+            </ul>
+          </div>
+          <button onclick="resetGame()" class="mt-6 bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">
+            Start Over
+          </button>
+        </div>
+      `;
+    }
+
+    function resetGame() {
+      completedDialogues = new Set();
+      updateProgress();
+      document.getElementById('dialogue-box').classList.add('hidden');
+      document.getElementById('dialogue-box').innerHTML = `
+        <div id="speaker-info" class="flex items-center gap-3 mb-4">
+          <div id="speaker-avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-2xl"></div>
+          <div>
+            <p id="speaker-name" class="text-white font-bold"></p>
+            <p id="speaker-role" class="text-slate-400 text-sm"></p>
+          </div>
+        </div>
+        <div id="dialogue-question" class="bg-slate-700/50 rounded-xl p-4 mb-4">
+          <p id="question-text" class="text-white leading-relaxed"></p>
+        </div>
+        <div id="answer-options" class="space-y-3"></div>
+        <div id="feedback-box" class="hidden mt-4 rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <span id="feedback-icon" class="text-2xl"></span>
+            <div>
+              <p id="feedback-title" class="font-bold mb-1"></p>
+              <p id="feedback-text" class="text-sm leading-relaxed"></p>
+            </div>
+          </div>
+          <button onclick="continueLearning()" class="mt-4 w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors">
+            Continue Learning
+          </button>
+        </div>
+      `;
+      document.getElementById('instruction-overlay').classList.remove('hidden');
+      document.getElementById('progress-text').textContent = '0 / 3';
+    }
+
+    // Quiz Mode
+    let quizState = {
+      currentQuestion: 0,
+      selectedAnswers: [],
+      questions: [
+        {
+          question: 'The patient was admitted on Jan 26 due to suspected GI bleeding caused by Aspirin and Clopidogrel. Which of the following is the most appropriate initial management upon admission?',
+          type: 'single',
+          options: [
+            { text: 'Discontinue Aspirin only; continue Clopidogrel', correct: false },
+            { text: 'Discontinue Clopidogrel only; continue Aspirin', correct: false },
+            { text: 'Suspend both Aspirin and Clopidogrel simultaneously', correct: true },
+            { text: 'Immediately switch to Warfarin', correct: false }
+          ],
+          feedback: 'Correct! Suspending both antiplatelet agents immediately stops the dual antiplatelet bleeding risk. This is the safest initial approach when GI bleeding is suspected and both medications could be contributing factors.'
+        },
+        {
+          question: 'On Jan 29, the patient\'s FOBT improved from +++ to +, and Hemoglobin (Hb) levels have been steadily rising. Which of the following findings best supports the decision to resume Aspirin therapy?',
+          type: 'single',
+          options: [
+            { text: 'Complete resolution of melena', correct: false },
+            { text: 'Hemoglobin (Hb) returned to normal range', correct: false },
+            { text: 'Active bleeding has been controlled', correct: true },
+            { text: 'Ferritin levels returned to normal', correct: false }
+          ],
+          feedback: 'Correct! The improvement in FOBT (from +++ to +) and rising Hb indicate that active bleeding has been controlled. This is the key evidence supporting resumption of antiplatelet therapy to prevent stroke recurrence while the GI bleeding risk has diminished.'
+        },
+        {
+          question: 'Which of the following statements regarding Keppra® oral solution and thickeners is correct?',
+          type: 'single',
+          options: [
+            { text: 'Do not use in conjunction with thickeners.', correct: false },
+            { text: 'Can be administered after mixing with thickeners.', correct: true },
+            { text: 'Must be switched to a crushed tablet formulation.', correct: false },
+            { text: 'Must be administered on an empty stomach.', correct: false }
+          ],
+          feedback: 'Correct! Keppra® oral solution can be safely mixed with thickeners for patients with dysphagia. The medication remains effective when combined with thickeners, making it ideal for NG tube administration or oral feeding with swallowing difficulties.'
+        },
+        {
+          question: 'Which of the following medications should NOT be crushed? (Select all that apply)',
+          type: 'multiple',
+          options: [
+            { text: 'Harnalidge OCAS 0.4mg/Tab (Extended-release Tamsulosin)', correct: true },
+            { text: 'Bokey (Aspirin) 100mg/Cap', correct: true },
+            { text: 'Diovan (Valsartan) 160mg/Tab', correct: false },
+            { text: 'Nexium (Esomeprazole) 40mg/Tab (Enteric-coated)', correct: true }
+          ],
+          feedback: 'Correct! Three medications cannot be crushed:\n• Harnalidge OCAS: Extended-release formulation; crushing destroys controlled-release mechanism\n• Bokey (Aspirin) capsule: Opening the capsule is acceptable, but granules should not be crushed\n• Nexium (Esomeprazole): Enteric-coated formulation; can be dissolved by soaking the tablet in water instead\n\nDiovan (Valsartan) CAN be crushed and mixed with water for NG tube administration. Never crush extended-release or enteric-coated medications without specific pharmacist guidance.'
+        }
+      ]
+    };
+
+    function startQuizMode() {
+      quizState.currentQuestion = 0;
+      quizState.selectedAnswers = [];
+      showQuizQuestion();
+    }
+
+    function showQuizQuestion() {
+      const q = quizState.questions[quizState.currentQuestion];
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.classList.remove('hidden');
+      dialogueBox.innerHTML = '';
+
+      const questionNum = quizState.currentQuestion + 1;
+      const totalQuestions = quizState.questions.length;
+
+      let html = `
+        <div class="mb-4">
+          <p class="text-slate-400 text-sm mb-2">Question ${questionNum} of ${totalQuestions}</p>
+          <h3 class="text-white text-lg font-bold">${q.question}</h3>
+        </div>
+        <div class="space-y-3 mb-4" id="quiz-options">
+      `;
+
+      q.options.forEach((option, index) => {
+        const letter = String.fromCharCode(65 + index);
+        if (q.type === 'multiple') {
+          html += `
+            <label class="flex items-start gap-3 p-4 bg-slate-700/50 hover:bg-slate-600 rounded-xl border border-slate-600 cursor-pointer transition-colors group">
+              <input type="checkbox" class="quiz-checkbox mt-1" data-index="${index}" />
+              <div class="flex-1">
+                <span class="inline-block w-8 h-8 bg-teal-600 group-hover:bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">${letter}</span>
+                <span class="text-slate-200">${option.text}</span>
+              </div>
+            </label>
+          `;
+        } else {
+          html += `
+            <button class="quiz-option w-full text-left p-4 bg-slate-700/50 hover:bg-slate-600 rounded-xl border border-slate-600 transition-colors group" data-index="${index}">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-8 h-8 bg-teal-600 group-hover:bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm">${letter}</span>
+                <p class="text-slate-200">${option.text}</p>
+              </div>
+            </button>
+          `;
+        }
+      });
+
+      html += `</div>`;
+
+      if (q.type === 'multiple') {
+        html += `
+          <button onclick="submitMultipleChoice()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors">
+            Submit Answer
+          </button>
+        `;
+      }
+
+      dialogueBox.innerHTML = html;
+
+      if (q.type === 'single') {
+        document.querySelectorAll('.quiz-option').forEach(btn => {
+          btn.onclick = () => submitSingleChoice(btn.dataset.index);
+        });
+      }
+    }
+
+    function submitSingleChoice(index) {
+      const q = quizState.questions[quizState.currentQuestion];
+      const option = q.options[index];
+
+      const dialogueBox = document.getElementById('dialogue-box');
+      const optionsDiv = document.getElementById('quiz-options');
+      optionsDiv.innerHTML = '';
+
+      let feedbackClass = 'bg-slate-700/50 border border-slate-600';
+      let icon = '❌';
+      let title = 'Incorrect';
+
+      if (option.correct) {
+        feedbackClass = 'bg-emerald-900/50 border border-emerald-700';
+        icon = '✅';
+        title = 'Correct!';
+      } else {
+        feedbackClass = 'bg-amber-900/50 border border-amber-700';
+        icon = '❌';
+        title = 'Not Quite...';
+      }
+
+      let html = `
+        <div class="mt-4 rounded-xl p-4 ${feedbackClass}">
+          <div class="flex items-start gap-3 mb-3">
+            <span class="text-2xl">${icon}</span>
+            <div>
+              <p class="font-bold ${option.correct ? 'text-emerald-400' : 'text-amber-400'}">${title}</p>
+              <p class="text-sm ${option.correct ? 'text-emerald-200' : 'text-amber-200'} mt-1">${q.feedback}</p>
+            </div>
+          </div>
+      `;
+
+      if (option.correct && quizState.currentQuestion < quizState.questions.length - 1) {
+        html += `<button onclick="nextQuizQuestion()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Next Question</button>`;
+      } else if (option.correct) {
+        html += `<button onclick="endQuiz()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Complete Quiz</button>`;
+      } else {
+        html += `<button onclick="showQuizQuestion()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Try Again</button>`;
+      }
+
+      html += `</div>`;
+      dialogueBox.innerHTML += html;
+    }
+
+    function submitMultipleChoice() {
+      const q = quizState.questions[quizState.currentQuestion];
+      const checkboxes = document.querySelectorAll('.quiz-checkbox');
+      const selected = Array.from(checkboxes)
+        .map((cb, i) => cb.checked ? i : -1)
+        .filter(i => i !== -1);
+
+      const correctIndices = q.options
+        .map((opt, i) => opt.correct ? i : -1)
+        .filter(i => i !== -1);
+
+      const isCorrect = selected.length === correctIndices.length &&
+        selected.every(i => correctIndices.includes(i));
+
+      const dialogueBox = document.getElementById('dialogue-box');
+      const optionsDiv = document.getElementById('quiz-options');
+      optionsDiv.innerHTML = '';
+
+      let feedbackClass = 'bg-slate-700/50 border border-slate-600';
+      let icon = '❌';
+      let title = 'Incorrect';
+
+      if (isCorrect) {
+        feedbackClass = 'bg-emerald-900/50 border border-emerald-700';
+        icon = '✅';
+        title = 'Correct!';
+      } else {
+        feedbackClass = 'bg-amber-900/50 border border-amber-700';
+        icon = '❌';
+        title = 'Not Quite...';
+      }
+
+      let html = `
+        <div class="mt-4 rounded-xl p-4 ${feedbackClass}">
+          <div class="flex items-start gap-3 mb-3">
+            <span class="text-2xl">${icon}</span>
+            <div>
+              <p class="font-bold ${isCorrect ? 'text-emerald-400' : 'text-amber-400'}">${title}</p>
+              <p class="text-sm ${isCorrect ? 'text-emerald-200' : 'text-amber-200'} mt-1 whitespace-pre-wrap">${q.feedback}</p>
+            </div>
+          </div>
+      `;
+
+      if (isCorrect && quizState.currentQuestion < quizState.questions.length - 1) {
+        html += `<button onclick="nextQuizQuestion()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Next Question</button>`;
+      } else if (isCorrect) {
+        html += `<button onclick="endQuiz()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Complete Quiz</button>`;
+      } else {
+        html += `<button onclick="showQuizQuestion()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Try Again</button>`;
+      }
+
+      html += `</div>`;
+      dialogueBox.innerHTML += html;
+    }
+
+    function nextQuizQuestion() {
+      quizState.currentQuestion++;
+      showQuizQuestion();
+    }
+
+    function endQuiz() {
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-6xl mb-4">🎓</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Quiz Complete!</h2>
+          <p class="text-slate-300 mb-6">You've successfully completed all clinical case questions</p>
+          <div class="bg-slate-700/50 rounded-xl p-4 text-left mb-6">
+            <h3 class="text-teal-400 font-bold mb-3">✓ Key Takeaways</h3>
+            <ul class="text-slate-300 text-sm space-y-2">
+              <li>• GI bleeding management: Suspend both antiplatelet agents immediately when bleeding is suspected</li>
+              <li>• Restarting criteria: Resume therapy only when active bleeding is controlled (not just lab normalization)</li>
+              <li>• Keppra oral solution: Compatible with thickeners for dysphagia patients</li>
+              <li>• Medication modifications: Extended-release and enteric-coated formulations cannot be crushed</li>
+              <li>• Alternatives: Consider dissolving enteric-coated tablets in water or switching formulations</li>
+            </ul>
+          </div>
+          <button onclick="exitQuiz()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">
+            Back to Main Scene
+          </button>
+        </div>
+      `;
+    }
+
+    function exitQuiz() {
+      // Reset dialogue box to original state
+      document.getElementById('dialogue-box').classList.add('hidden');
+      document.getElementById('dialogue-box').innerHTML = `
+        <div id="speaker-info" class="flex items-center gap-3 mb-4">
+          <div id="speaker-avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-2xl"></div>
+          <div>
+            <p id="speaker-name" class="text-white font-bold"></p>
+            <p id="speaker-role" class="text-slate-400 text-sm"></p>
+          </div>
+        </div>
+        <div id="dialogue-question" class="bg-slate-700/50 rounded-xl p-4 mb-4">
+          <p id="question-text" class="text-white leading-relaxed"></p>
+        </div>
+        <div id="answer-options" class="space-y-3"></div>
+        <div id="feedback-box" class="hidden mt-4 rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <span id="feedback-icon" class="text-2xl"></span>
+            <div>
+              <p id="feedback-title" class="font-bold mb-1"></p>
+              <p id="feedback-text" class="text-sm leading-relaxed"></p>
+            </div>
+          </div>
+          <button onclick="continueLearning()" class="mt-4 w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors">
+            Continue Learning
+          </button>
+        </div>
+      `;
+      
+      document.getElementById('instruction-overlay').classList.remove('hidden');
+      
+      // Reset quiz state so it can be replayed
+      quizState.currentQuestion = 0;
+      quizState.selectedAnswers = [];
+    }
+
+    // ========== TEMPLATE: Copy this section to create NEW dialogue scenarios ==========
+    // INSTRUCTIONS: 
+    // 1. Copy the entire template below
+    // 2. Replace 'template_scenario' with your scenario name
+    // 3. Fill in speaker, role, avatar, question, and options
+    // 4. Add it to the 'dialogues' object before completedDialogues line
+    // 5. Update startDialogue() to reference your new scenario
+    
+    const DIALOGUE_TEMPLATE = `
+    // Add this to the dialogues object:
+    your_scenario_name: {
+      speaker: 'Character Name',
+      role: 'Character Role (e.g., Physician, Nurse)',
+      avatar: '👤',  // Use emoji or text
+      avatarBg: 'bg-gradient-to-br from-blue-400 to-blue-600',  // Tailwind gradient
+      question: 'Your question or scenario description here',
+      stage: 1,  // Optional: for multi-stage dialogues
+      options: [
+        {
+          text: 'First answer option',
+          correct: true,
+          feedback: 'Correct! Explanation of why this is right.',
+          nextStage: 'next_scenario_name'  // Optional: go to next dialogue
+        },
+        {
+          text: 'Second answer option (wrong)',
+          correct: false,
+          feedback: 'Not quite right. Here is the correct approach...',
+          isWrong: true,
+          stayOnStage: 'your_scenario_name'  // Stay on this dialogue to retry
+        },
+        {
+          text: 'Third answer option',
+          correct: true,
+          feedback: 'Perfect answer!'
+        }
+      ]
+    }
+    `;
+
+    // Key properties explained:
+    // - speaker: Name of the character speaking
+    // - role: Their professional role
+    // - avatar: Emoji representation (👨‍⚕️, 👨, 👩‍⚕️, etc.)
+    // - avatarBg: Background gradient (from Tailwind: blue, purple, teal, etc.)
+    // - question: The dialogue text/question
+    // - stage: (Optional) For tracking progression through multi-part questions
+    // - options: Array of answer choices
+    //   - text: The answer option text
+    //   - correct: Boolean (true/false)
+    //   - feedback: Explanation shown after answer
+    //   - nextStage: (Optional) Name of next dialogue if correct
+    //   - stayOnStage: (Optional) Re-show this dialogue if wrong
+    //   - isWrong: (Optional) Marks as wrong answer to trigger retry
+    //   - isEndResponse: (Optional) Closes dialogue after showing feedback
+    //   - isFinalCorrect: (Optional) Shows completion screen
+
+    // EXAMPLE: Simple single-question dialogue
+    const EXAMPLE_SIMPLE = `
+    nurse_communication: {
+      speaker: 'Nurse Sarah',
+      role: 'Head Nurse',
+      avatar: '👩‍⚕️',
+      avatarBg: 'bg-gradient-to-br from-pink-400 to-rose-600',
+      question: 'How should we approach patient education about medication adherence?',
+      options: [
+        {
+          text: 'Provide written instructions in the patient\'s preferred language with clear visual aids',
+          correct: true,
+          feedback: 'Excellent! Clear, accessible patient education improves medication adherence and outcomes.'
+        },
+        {
+          text: 'Just tell them what to do verbally; they\'ll remember',
+          correct: false,
+          feedback: 'Verbal instructions alone are often forgotten. Written and visual aids are essential.',
+          isWrong: true,
+          stayOnStage: 'nurse_communication'
+        }
+      ]
+    }
+    `;
+
+    // EXAMPLE: Multi-stage dialogue (interconnected questions)
+    const EXAMPLE_MULTISTAGE = `
+    // First dialogue
+    question_part1: {
+      speaker: 'Dr. Wilson',
+      role: 'Clinical Pharmacist',
+      avatar: '👨‍⚕️',
+      avatarBg: 'bg-gradient-to-br from-cyan-400 to-blue-600',
+      question: 'What is the first step in assessing drug interactions?',
+      options: [
+        {
+          text: 'Review all medications the patient is currently taking',
+          correct: true,
+          feedback: 'Correct! This is the foundation.',
+          nextStage: 'question_part2'  // Goes to next dialogue
+        },
+        {
+          text: 'Skip to checking the new drug only',
+          correct: false,
+          feedback: 'You need the complete medication list first.',
+          isWrong: true,
+          stayOnStage: 'question_part1'
+        }
+      ]
+    },
+
+    // Second dialogue (connected to first)
+    question_part2: {
+      speaker: 'Dr. Wilson',
+      role: 'Clinical Pharmacist',
+      avatar: '👨‍⚕️',
+      avatarBg: 'bg-gradient-to-br from-cyan-400 to-blue-600',
+      question: 'Now that you have the medication list, what do you check next?',
+      options: [
+        {
+          text: 'Check for CYP450 enzyme interactions and protein binding competition',
+          correct: true,
+          feedback: 'Perfect! These are the major interaction mechanisms to evaluate.',
+          isFinalCorrect: true
+        }
+      ]
+    }
+    `;
+
+    console.log('DIALOGUE TEMPLATE READY');
+    console.log('Copy the template above to create new scenarios');
+    console.log('See EXAMPLE_SIMPLE and EXAMPLE_MULTISTAGE for reference');
+
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e124c5ef33ef1ec',t:'MTc3NDMxOTg5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
