@@ -74,8 +74,16 @@
        <h1 id="scenario-title" class="text-white text-xl font-bold">Pharmacist Clinical Training Simulator</h1>
        <p class="text-teal-200 text-sm">Patients with chewing and swallowing difficulties with NG tube</p>
        <p class="text-slate-400 text-xs mt-1">教案設計者: 崇鈺老師研究室團隊 (Shao-Yuan Hao)</p>
-      </div>
-     </div>
+<!-- License & Attribution -->
+<div class="mt-2 text-[11px] text-slate-400 leading-relaxed">
+<p class="text-teal-300 font-medium">License & Attribution</p>
+<p>CC BY-NC-SA 4.0</p>
+<p>Author: Shao-Yuan Hao (郝紹媛)</p>
+<p>Affiliation: Kaohsiung Medical University</p>
+<p>
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+</p>
+</div> 
      <div id="score-display" class="bg-white/10 rounded-lg px-4 py-2"><span class="text-teal-200 text-sm">Learning Progress</span> <span id="progress-text" class="text-white font-bold ml-2">0 / 3</span>
      </div>
     </div><!-- Background Scenario -->
@@ -730,7 +738,7 @@
         question: 'Pharmacist, my father will be discharged on February 2nd if he continues improving. The doctor mentioned he might be able to eat orally with a thickener since the NG tube may be removed. We\'re worried because he had a stroke and has trouble swallowing. Can you explain how to use the thickener properly and what we need to watch for?',
         options: [
           {
-            text: 'The thickener increases fluid viscosity to slow down bolus movement, giving your father more time to swallow safely. Start with pureed foods thickened to "pudding" consistency. Always have him upright when eating, never lie down immediately after. Watch for coughing, choking, or difficulty breathing—signs of aspiration. Ensure small, frequent meals and have suction available at home.',
+            text: 'The thickener increases fluid viscosity to slow down bolus movement. Always have him upright when eating, never lie down immediately.',
             correct: true,
             feedback: 'Perfect! You\'ve provided comprehensive dysphagia management education. Key points: viscosity adjustment reduces aspiration risk, positioning is critical, and early detection of aspiration signs is essential. Family education is vital for safe discharge. Given the patient\'s post-stroke dysarthria and swallowing difficulty, this guidance directly prevents aspiration pneumonia—a major complication in elderly post-stroke patients.'
           },
@@ -758,7 +766,7 @@
         question: 'Before discharge, I wanted to discuss the drug selection again. The patient originally took both Aspirin AND Clopidogrel for his stroke prevention. Now we\'re only on Aspirin with gastroprotection. How should I counsel the patient about why we\'re not restarting Clopidogrel, and what should we monitor going forward?',
         options: [
           {
-            text: 'Dual antiplatelet therapy (Aspirin + Clopidogrel) significantly increased his GI bleeding risk, especially in an elderly patient. Since his stroke occurred over a month ago and the acute phase has passed, single antiplatelet therapy (Aspirin alone) provides reasonable stroke prevention with substantially lower bleeding risk. Monitor for signs of recurrent stroke and GI bleeding. Re-evaluate dual therapy only if he has a new ischemic event.',
+            text: 'Dual antiplatelet therapy increased his GI bleeding risk. Since the acute phase has passed, single antiplatelet therapy provides reasonable stroke prevention. Monitor for signs of recurrent stroke and GI bleeding.',
             correct: true,
             feedback: 'Excellent clinical reasoning! Balancing stroke prevention against GI bleeding risk is key in elderly post-stroke patients. Single antiplatelet therapy is often appropriate after the acute stroke phase, especially when GI bleeding has occurred. The gastroprotective Esomeprazole further reduces GI risk. Continue monitoring for both recurrent stroke symptoms and GI bleeding signs. Document this risk-benefit discussion clearly.'
           },
@@ -847,7 +855,7 @@
         isPhysicianEndStage: true,
         options: [
           {
-            text: 'The thickener increases fluid viscosity to slow down bolus movement. Always have him upright when eating, never lie down immediately after. Ensure small, frequent meals and have suction available at home.',
+            text: 'The thickener increases fluid viscosity to slow down bolus movement, giving your father more time to swallow safely. Start with pureed foods thickened to "pudding" consistency. Always have him upright when eating, never lie down immediately after. Watch for coughing, choking, or difficulty breathing—signs of aspiration. Ensure small, frequent meals and have suction available at home.',
             correct: true,
             feedback: 'Perfect! You\'ve provided comprehensive dysphagia management education. Key points: viscosity adjustment reduces aspiration risk, positioning is critical, and early detection of aspiration signs is essential. Family education is vital for safe discharge. Given the patient\'s post-stroke dysarthria and swallowing difficulty, this guidance directly prevents aspiration pneumonia—a major complication in elderly post-stroke patients.',
             nextStage: 'caregiver-question2'
@@ -928,7 +936,7 @@
         question: 'Thank you for stopping me! Now I\'m confused—how should we give Aspirin through the NG tube then? What\'s the proper method?',
         options: [
           {
-            text: 'Open the capsule and pour the granules directly into the NG tube (without crushing) mixed with water. Flush the NG tube with 10-15 mL of water before administration, then again with 10-15 mL of water after administration to ensure all granules pass through. Elevate the head of the bed to 30 degrees for 30 minutes after administration.',
+            text: 'Open the capsule and pour the granules with water directly into the NG tube (without crushing). Flush the NG tube with water before administration, then again with 10-15 mL of water after administration to ensure all granules pass through.',
             correct: true,
             feedback: 'Perfect! This is the correct approach for Aspirin capsules via NG tube. Key points: (1) Opening the capsule is acceptable—just don\'t crush the granules, as they may have delayed-release properties; (2) The granules can flow through an appropriately-sized NG tube intact; (3) Pre- and post-flushing with adequate water volume ensures the granules pass through completely and prevents tube occlusion; (4) Head elevation optimizes gastric emptying and reduces reflux risk. This demonstrates proper NG tube medication administration technique while respecting the medication\'s formulation integrity—critical for preventing tube complications and ensuring medication efficacy in elderly post-stroke patients.',
             isFinalCorrect: true
@@ -1700,16 +1708,6 @@
 
     initializeApp();
   </script>
- <!-- License & Attribution -->
- <div class="fixed bottom-2 right-2 md:bottom-4 md:right-4 z-50 max-w-[220px] md:max-w-xs bg-slate-900/95 border border-slate-700 rounded-xl shadow-xl px-3 py-2 md:px-4 md:py-3 text-[10px] md:text-[11px] text-slate-300 leading-relaxed backdrop-blur-sm">
-    <p>CC BY-NC-SA 4.0</p>
-    <p>Author: Shao-Yuan Hao (郝紹媛)</p>
-    <p>Affiliation: Professor Chen Chung-Yu (陳崇鈺) Research Team, Kaohsiung Medical University</p>
-    <p>Project: Pharmacist Clinical Training Simulator – Altered consciousness with dysphagia and NG tube</p>
-    <p class="mt-2 text-slate-400">
-      This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
-    </p>
-  </div>
-
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e124c5ef33ef1ec',t:'MTc3NDMxOTg5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
