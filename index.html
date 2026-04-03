@@ -57,12 +57,44 @@
       from { stroke-dashoffset: 100; }
       to { stroke-dashoffset: 0; }
     }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
   </style>
   <style>body { box-sizing: border-box; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full bg-slate-900 overflow-auto">
-  <div id="app-container" class="h-full w-full flex flex-col"><!-- Header -->
+  <div id="app-container" class="h-full w-full flex flex-col"><!-- Team Modal -->
+   <div id="group-info-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center px-4">
+    <div class="w-full max-w-lg bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl">
+     <div class="flex items-start justify-between gap-4">
+      <div>
+       <h2 class="text-white text-2xl font-bold">Team Information Required</h2>
+       <p class="text-slate-300 text-sm mt-2">Please enter your Class and Group name before starting. This browser will remember and update the same team record automatically.</p>
+      </div>
+      <div class="text-4xl">📝</div>
+     </div>
+     <div class="mt-6 space-y-4">
+      <div>
+       <label for="class-input" class="block text-slate-200 text-sm font-medium mb-2">Class</label>
+       <input id="class-input" type="text" class="w-full rounded-xl border border-slate-600 bg-slate-900 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="" />
+      </div>
+      <div>
+       <label for="group-input" class="block text-slate-200 text-sm font-medium mb-2">Group name</label>
+       <input id="group-input" type="text" class="w-full rounded-xl border border-slate-600 bg-slate-900 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="" />
+      </div>
+      <p id="group-form-error" class="hidden text-red-300 text-sm">Please provide both Class and Group name.</p>
+     </div>
+     <div class="mt-6">
+      <button onclick="saveGroupInfo()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3 rounded-xl transition-colors">Start / Continue</button>
+     </div>
+    </div>
+   </div><!-- Header -->
    <header class="bg-gradient-to-r from-teal-800 to-cyan-900 px-6 py-4 shadow-lg flex-shrink-0">
     <div class="flex items-center justify-between mb-3">
      <div class="flex items-center gap-3">
@@ -84,7 +116,7 @@
 This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 </p>
 </div> 
-     <div id="score-display" class="bg-white/10 rounded-lg px-4 py-2"><span class="text-teal-200 text-sm">Learning Progress</span> <span id="progress-text" class="text-white font-bold ml-2">0 / 3</span>
+     <div id="score-display" class="bg-white/10 rounded-lg px-4 py-2"><span class="text-teal-200 text-sm">Learning Progress</span> <span id="progress-text" class="text-white font-bold ml-2">0 / 4</span>
      </div>
     </div><!-- Background Scenario -->
     <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-200">
@@ -590,6 +622,7 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       </details>
      </div>
     </aside><!-- Center - Hospital Room Scene -->
+    <div class="flex-1 flex flex-col xl:flex-row gap-4 min-h-0">
     <section class="flex-1 flex flex-col min-h-0"><!-- Scene -->
      <div class="bg-gradient-to-b from-slate-700 to-slate-800 rounded-2xl flex-1 relative overflow-hidden border border-slate-600 min-h-[300px]"><!-- Room Background Elements -->
       <div class="absolute inset-0"><!-- Window -->
@@ -668,7 +701,50 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
        </div><button onclick="continueLearning()" class="mt-4 w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors"> Continue Learning </button>
       </div>
      </div>
+
     </section>
+    <aside class="xl:w-80 flex-shrink-0">
+     <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 xl:sticky xl:top-4">
+      <h2 class="text-white text-xl font-bold mb-4">Learning Statistics</h2>
+      <div class="bg-slate-700/40 border border-slate-600 rounded-2xl p-4 mb-4">
+       <p class="text-slate-400 text-sm">Class</p>
+       <p id="display-class-name" class="text-white font-semibold mt-1">Not set</p>
+       <p class="text-slate-400 text-sm mt-3">Group name</p>
+       <p id="display-group-name" class="text-white font-semibold mt-1">Not set</p>
+       <button onclick="openGroupModal()" class="mt-4 w-full bg-cyan-700 hover:bg-cyan-600 text-white font-medium py-2.5 rounded-xl transition-colors">Edit Class / Group</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+       <div class="bg-slate-700/50 rounded-2xl p-4 border border-slate-600">
+        <p class="text-slate-400 text-sm">Total Submissions</p>
+        <p id="stat-total" class="text-white text-3xl font-bold mt-2">0</p>
+       </div>
+       <div class="bg-slate-700/50 rounded-2xl p-4 border border-slate-600">
+        <p class="text-slate-400 text-sm">Correct Answers</p>
+        <p id="stat-correct" class="text-emerald-300 text-3xl font-bold mt-2">0</p>
+       </div>
+       <div class="bg-slate-700/50 rounded-2xl p-4 border border-slate-600">
+        <p class="text-slate-400 text-sm">Wrong Answers</p>
+        <p id="stat-wrong" class="text-amber-300 text-3xl font-bold mt-2">0</p>
+       </div>
+       <div class="bg-slate-700/50 rounded-2xl p-4 border border-slate-600">
+        <p class="text-slate-400 text-sm">Wrong Records</p>
+        <p id="stat-wrong-records" class="text-red-300 text-3xl font-bold mt-2">0</p>
+       </div>
+      </div>
+      <div class="mt-4 flex flex-col gap-3">
+       <button onclick="exportCurrentGroupResponses()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl transition-colors">
+        匯出本組完整記錄 CSV
+       </button>
+      </div>
+      <div class="mt-5">
+       <h3 class="text-slate-200 font-semibold mb-2">Recent Wrong Questions</h3>
+       <div id="wrong-question-list" class="space-y-2 max-h-[360px] overflow-auto">
+        <p class="text-slate-400 text-sm">目前沒有錯題紀錄</p>
+       </div>
+      </div>
+     </div>
+    </aside>
+    </div>
    </main>
   </div>
   <script>
@@ -684,12 +760,23 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       font_family: 'Noto Sans TC',
       font_size: 16
     };
-
     let config = { ...defaultConfig };
     let completedDialogues = new Set();
     let currentDialogue = null;
     let caregiverStage = 'caregiver'; // Track which caregiver dialogue stage we're in
 
+    let scoreBoard = {
+      totalSubmissions: 0,
+      correctAnswers: 0,
+      wrongAnswers: 0
+    };
+
+    let wrongQuestionHistory = [];
+    let answerHistory = [];
+    let studentGroupInfo = { className: '', groupName: '', startedAt: '' };
+    let dialogueScenarioComplete = false;
+    let quizCompleted = false;
+    const STORAGE_KEY = 'pharmacist_simulator_group_records_v1';
     // Dialogue data with multi-layer interaction
     const dialogues = {
       caregiver_reject: {
@@ -959,6 +1046,385 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       }
     };
 
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function recordWrongQuestion(questionObj, selectedAnswer, correctAnswer) {
+      wrongQuestionHistory.push({
+        questionText: questionObj.question,
+        selectedAnswer,
+        correctAnswer,
+        timestamp: new Date().toLocaleString()
+      });
+      saveCurrentGroupRecord();
+    }
+
+    function renderWrongQuestionList() {
+      const container = document.getElementById('wrong-question-list');
+      if (!container) return;
+
+      if (wrongQuestionHistory.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-sm">目前沒有錯題紀錄</p>';
+        return;
+      }
+
+      const recent = wrongQuestionHistory.slice(-10).reverse();
+      container.innerHTML = recent.map((item, index) => `
+        <div class="bg-slate-700/40 border border-slate-600 rounded-xl p-3">
+          <p class="text-red-300 text-xs mb-1">Wrong #${wrongQuestionHistory.length - index}</p>
+          <p class="text-slate-200 text-sm font-medium">${escapeHtml(item.questionText)}</p>
+          <p class="text-slate-400 text-xs mt-2">你的答案：${escapeHtml(item.selectedAnswer)}</p>
+          <p class="text-emerald-300 text-xs mt-1">正確答案：${escapeHtml(item.correctAnswer)}</p>
+          <p class="text-slate-500 text-[11px] mt-1">${escapeHtml(item.timestamp)}</p>
+        </div>
+      `).join('');
+    }
+
+    function updateScoreBoard() {
+      const totalEl = document.getElementById('stat-total');
+      const correctEl = document.getElementById('stat-correct');
+      const wrongEl = document.getElementById('stat-wrong');
+      const wrongRecordsEl = document.getElementById('stat-wrong-records');
+
+      if (totalEl) totalEl.textContent = scoreBoard.totalSubmissions;
+      if (correctEl) correctEl.textContent = scoreBoard.correctAnswers;
+      if (wrongEl) wrongEl.textContent = scoreBoard.wrongAnswers;
+      if (wrongRecordsEl) wrongRecordsEl.textContent = wrongQuestionHistory.length;
+
+      renderWrongQuestionList();
+    }
+
+    function exportWrongQuestions() {
+      if (wrongQuestionHistory.length === 0) {
+        alert('目前沒有錯題紀錄');
+        return;
+      }
+
+      const rows = [
+        ['Question', 'Selected Answer', 'Correct Answer', 'Timestamp'],
+        ...wrongQuestionHistory.map(item => [
+          item.questionText,
+          item.selectedAnswer,
+          item.correctAnswer,
+          item.timestamp
+        ])
+      ];
+
+      const csvContent = rows.map(row =>
+        row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'wrong_questions.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearScoreBoard() {
+      if (!confirm('Clear the current team score and response records?')) return;
+      scoreBoard = {
+        totalSubmissions: 0,
+        correctAnswers: 0,
+        wrongAnswers: 0
+      };
+      wrongQuestionHistory = [];
+      answerHistory = [];
+      dialogueScenarioComplete = false;
+      quizCompleted = false;
+      updateScoreBoard();
+    }
+
+    function normalizeKey(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function makeGroupKey(className, groupName) {
+      return `${normalizeKey(className)}::${normalizeKey(groupName)}`;
+    }
+
+    function getAllStoredGroups() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveAllStoredGroups(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function getCurrentGroupKey() {
+      if (!studentGroupInfo.className || !studentGroupInfo.groupName) return '';
+      return makeGroupKey(studentGroupInfo.className, studentGroupInfo.groupName);
+    }
+
+    function saveCurrentGroupRecord() {
+      const key = getCurrentGroupKey();
+      if (!key) return;
+      const allGroups = getAllStoredGroups();
+      allGroups[key] = {
+        className: studentGroupInfo.className,
+        groupName: studentGroupInfo.groupName,
+        startedAt: studentGroupInfo.startedAt || new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        scoreBoard,
+        wrongQuestionHistory,
+        answerHistory,
+        dialogueScenarioComplete,
+        quizCompleted
+      };
+      saveAllStoredGroups(allGroups);
+    }
+
+    function loadGroupRecord(record) {
+      scoreBoard = record?.scoreBoard || { totalSubmissions: 0, correctAnswers: 0, wrongAnswers: 0 };
+      wrongQuestionHistory = record?.wrongQuestionHistory || [];
+      answerHistory = record?.answerHistory || [];
+      dialogueScenarioComplete = Boolean(record?.dialogueScenarioComplete);
+      quizCompleted = Boolean(record?.quizCompleted);
+      studentGroupInfo = {
+        className: record?.className || '',
+        groupName: record?.groupName || '',
+        startedAt: record?.startedAt || new Date().toISOString()
+      };
+      updateScoreBoard();
+      updateGroupDisplay();
+    }
+
+    function updateGroupDisplay() {
+      const classEl = document.getElementById('display-class-name');
+      const groupEl = document.getElementById('display-group-name');
+      if (classEl) classEl.textContent = studentGroupInfo.className || 'Not set';
+      if (groupEl) groupEl.textContent = studentGroupInfo.groupName || 'Not set';
+    }
+
+    function openGroupModal() {
+      const modal = document.getElementById('group-info-modal');
+      if (!modal) return;
+      document.getElementById('class-input').value = studentGroupInfo.className || '';
+      document.getElementById('group-input').value = studentGroupInfo.groupName || '';
+      document.getElementById('group-form-error').classList.add('hidden');
+      modal.classList.remove('hidden');
+    }
+
+    function closeGroupModal() {
+      const modal = document.getElementById('group-info-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveGroupInfo() {
+      const className = document.getElementById('class-input').value.trim();
+      const groupName = document.getElementById('group-input').value.trim();
+      const errorEl = document.getElementById('group-form-error');
+      if (!className || !groupName) {
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      errorEl.classList.add('hidden');
+      const key = makeGroupKey(className, groupName);
+      const allGroups = getAllStoredGroups();
+      const existing = allGroups[key];
+      if (existing) {
+        loadGroupRecord(existing);
+        studentGroupInfo.className = className;
+        studentGroupInfo.groupName = groupName;
+      } else {
+        studentGroupInfo = { className, groupName, startedAt: new Date().toISOString() };
+        scoreBoard = { totalSubmissions: 0, correctAnswers: 0, wrongAnswers: 0 };
+        wrongQuestionHistory = [];
+        answerHistory = [];
+        dialogueScenarioComplete = false;
+        quizCompleted = false;
+        updateScoreBoard();
+        updateGroupDisplay();
+      }
+      saveCurrentGroupRecord();
+      closeGroupModal();
+    }
+
+    function clearAllStoredGroups() {
+      if (!confirm('This will delete all saved team records on this browser. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      studentGroupInfo = { className: '', groupName: '', startedAt: '' };
+      scoreBoard = { totalSubmissions: 0, correctAnswers: 0, wrongAnswers: 0 };
+      wrongQuestionHistory = [];
+      answerHistory = [];
+      dialogueScenarioComplete = false;
+      quizCompleted = false;
+      updateScoreBoard();
+      updateGroupDisplay();
+      openGroupModal();
+    }
+
+    function recordResponse({ mode, questionText, selectedAnswer, correctAnswer, isCorrect, context }) {
+      answerHistory.push({
+        className: studentGroupInfo.className || '',
+        groupName: studentGroupInfo.groupName || '',
+        mode,
+        context: context || '',
+        questionText,
+        selectedAnswer,
+        correctAnswer,
+        isCorrect,
+        timestamp: new Date().toLocaleString()
+      });
+      saveCurrentGroupRecord();
+    }
+
+    function maybeShowFinalResults() {
+      if (dialogueScenarioComplete && quizCompleted) {
+        showFinalResultsPage();
+      }
+    }
+
+    function getWrongQuestionSummaryHtml() {
+      if (wrongQuestionHistory.length === 0) {
+        return '<p class="text-emerald-200">Excellent work. No incorrect responses were recorded for this team.</p>';
+      }
+      return wrongQuestionHistory.map((item, index) => `
+        <div class="bg-slate-700/40 border border-slate-600 rounded-2xl p-4 text-left">
+          <p class="text-red-300 text-xs mb-2">Incorrect response #${index + 1}</p>
+          <p class="text-white font-semibold">${escapeHtml(item.questionText)}</p>
+          <p class="text-slate-300 text-sm mt-2">Your answer: <span class="text-amber-300">${escapeHtml(item.selectedAnswer)}</span></p>
+          <p class="text-slate-300 text-sm mt-1">Correct answer: <span class="text-emerald-300">${escapeHtml(item.correctAnswer)}</span></p>
+          <p class="text-slate-500 text-xs mt-2">${escapeHtml(item.timestamp)}</p>
+        </div>
+      `).join('');
+    }
+
+    function showFinalResultsPage() {
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.classList.remove('hidden');
+      dialogueBox.innerHTML = `
+        <div class="py-4">
+          <div class="text-center">
+            <div class="text-6xl mb-4">📊</div>
+            <h2 class="text-3xl font-bold text-white">Final Team Results</h2>
+            <p class="text-slate-300 mt-2">Class: <span class="font-semibold text-white">${escapeHtml(studentGroupInfo.className || 'N/A')}</span> | Group: <span class="font-semibold text-white">${escapeHtml(studentGroupInfo.groupName || 'N/A')}</span></p>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4 mt-6">
+            <div class="bg-slate-700/40 border border-slate-600 rounded-2xl p-4 text-center">
+              <p class="text-slate-400 text-sm">Total Submissions</p>
+              <p class="text-white text-3xl font-bold mt-2">${scoreBoard.totalSubmissions}</p>
+            </div>
+            <div class="bg-slate-700/40 border border-slate-600 rounded-2xl p-4 text-center">
+              <p class="text-slate-400 text-sm">Correct Answers</p>
+              <p class="text-emerald-300 text-3xl font-bold mt-2">${scoreBoard.correctAnswers}</p>
+            </div>
+            <div class="bg-slate-700/40 border border-slate-600 rounded-2xl p-4 text-center">
+              <p class="text-slate-400 text-sm">Wrong Answers</p>
+              <p class="text-amber-300 text-3xl font-bold mt-2">${scoreBoard.wrongAnswers}</p>
+            </div>
+          </div>
+          <div class="mt-6 bg-slate-800/70 border border-slate-600 rounded-2xl p-4">
+            <h3 class="text-white text-xl font-bold mb-3">Review Incorrect Questions</h3>
+            <div class="space-y-3 max-h-[420px] overflow-auto">
+              ${getWrongQuestionSummaryHtml()}
+            </div>
+          </div>
+          <div class="mt-6 grid sm:grid-cols-2 gap-3">
+            <button onclick="exportCurrentGroupResponses()" class="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition-colors">Export This Team Record</button>
+            <button onclick="exportAllGroupsSummary()" class="bg-violet-700 hover:bg-violet-600 text-white font-semibold py-3 rounded-xl transition-colors">Export Teacher Summary</button>
+            <button onclick="exitQuiz()" class="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3 rounded-xl transition-colors">Back to Main Scene</button>
+            <button onclick="resetGame()" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold py-3 rounded-xl transition-colors">Restart Dialogue Flow</button>
+          </div>
+        </div>
+      `;
+      saveCurrentGroupRecord();
+    }
+
+    function downloadCsv(filename, rows) {
+      const csvContent = rows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCurrentGroupResponses() {
+      if (!answerHistory.length) {
+        alert('There is no response data for this team yet.');
+        return;
+      }
+      const rows = [
+        ['Class', 'Group', 'Summitted time', 'Question', 'Selected answer', 'Correct answer', 'Result'],
+        ...answerHistory.map(item => [
+          item.className,
+          item.groupName,
+          item.timestamp,
+          item.questionText,
+          item.selectedAnswer,
+          item.correctAnswer,
+          item.isCorrect ? 'correct' : 'incorrect'
+        ])
+      ];
+      const safeClass = normalizeKey(studentGroupInfo.className || 'class').replace(/[^a-z0-9]+/g, '_');
+      const safeGroup = normalizeKey(studentGroupInfo.groupName || 'group').replace(/[^a-z0-9]+/g, '_');
+      downloadCsv(`${safeClass}_${safeGroup}_complete_record.csv`, rows);
+    }
+
+
+    function exportAllGroupsDetailedResponses() {
+      const allGroups = Object.values(getAllStoredGroups());
+      const allRows = allGroups.flatMap(group => (group.answerHistory || []).map(item => [
+        item.className || group.className || '',
+        item.groupName || group.groupName || '',
+        item.mode || '',
+        item.context || '',
+        item.questionText || '',
+        item.selectedAnswer || '',
+        item.correctAnswer || '',
+        item.isCorrect ? 'Yes' : 'No',
+        item.timestamp || ''
+      ]));
+      if (!allRows.length) {
+        alert('No saved response rows were found on this browser.');
+        return;
+      }
+      downloadCsv('teacher_all_group_responses.csv', [
+        ['Class', 'Group name', 'Mode', 'Context', 'Question', 'Selected answer', 'Correct answer', 'Is correct', 'Timestamp'],
+        ...allRows
+      ]);
+    }
+
+    function exportAllGroupsSummary() {
+      const allGroups = Object.values(getAllStoredGroups());
+      if (!allGroups.length) {
+        alert('No saved team records were found on this browser.');
+        return;
+      }
+      const rows = [
+        ['Class', 'Group name', 'Started at', 'Last updated', 'Total submissions', 'Correct answers', 'Wrong answers', 'Wrong records', 'Dialogue complete', 'Quiz complete', 'Total response rows'],
+        ...allGroups.map(group => [
+          group.className || '',
+          group.groupName || '',
+          group.startedAt || '',
+          group.lastUpdated || '',
+          group.scoreBoard?.totalSubmissions ?? 0,
+          group.scoreBoard?.correctAnswers ?? 0,
+          group.scoreBoard?.wrongAnswers ?? 0,
+          group.wrongQuestionHistory?.length ?? 0,
+          group.dialogueScenarioComplete ? 'Yes' : 'No',
+          group.quizCompleted ? 'Yes' : 'No',
+          group.answerHistory?.length ?? 0
+        ])
+      ];
+      downloadCsv('teacher_group_summary.csv', rows);
+    }
+
     // Initialize SDK
     async function initializeApp() {
       if (window.elementSdk) {
@@ -1009,7 +1475,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       }
       applyConfig();
     }
-
     function applyConfig() {
       const fontFamily = config.font_family || defaultConfig.font_family;
       const fontSize = config.font_size || defaultConfig.font_size;
@@ -1017,22 +1482,18 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       const surfaceColor = config.surface_color || defaultConfig.surface_color;
       const textColor = config.text_color || defaultConfig.text_color;
       const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
-
       document.body.style.backgroundColor = bgColor;
       document.body.style.fontFamily = `${fontFamily}, sans-serif`;
       document.body.style.fontSize = `${fontSize}px`;
-
       const patientNameEl = document.getElementById('patient-name');
       if (patientNameEl) {
         patientNameEl.textContent = config.patient_name || defaultConfig.patient_name;
       }
-
       const scenarioTitleEl = document.getElementById('scenario-title');
       if (scenarioTitleEl) {
         scenarioTitleEl.textContent = config.scenario_title || defaultConfig.scenario_title;
       }
     }
-
     function startDialogue(character) {
       let dialogueKey = character;
       
@@ -1048,27 +1509,21 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       
       const dialogue = dialogues[dialogueKey];
       if (!dialogue) return;
-
       currentDialogue = character;
-
       document.getElementById('instruction-overlay').classList.add('hidden');
       
       const dialogueBox = document.getElementById('dialogue-box');
       dialogueBox.classList.remove('hidden');
       dialogueBox.classList.add('dialogue-enter');
-
       const avatar = document.getElementById('speaker-avatar');
       avatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-2xl ${dialogue.avatarBg}`;
       avatar.textContent = dialogue.avatar;
-
       document.getElementById('speaker-name').textContent = dialogue.speaker;
       document.getElementById('speaker-role').textContent = dialogue.role;
       document.getElementById('question-text').textContent = dialogue.question;
-
       const optionsContainer = document.getElementById('answer-options');
       optionsContainer.innerHTML = '';
       optionsContainer.classList.remove('hidden');
-
       dialogue.options.forEach((option, index) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn w-full text-left bg-slate-700 hover:bg-slate-600 border border-slate-600 hover:border-teal-500 rounded-xl p-4 transition-all group';
@@ -1083,24 +1538,40 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         btn.onclick = () => selectAnswer(index, dialogueKey);
         optionsContainer.appendChild(btn);
       });
-
       document.getElementById('feedback-box').classList.add('hidden');
     }
-
     function selectAnswer(index, character) {
       const dialogue = dialogues[character];
       const option = dialogue.options[index];
+      const correctAnswerText = dialogue.options
+        .filter(opt => opt.correct)
+        .map(opt => opt.text)
+        .join(' / ') || 'N/A';
+
+      scoreBoard.totalSubmissions += 1;
+      if (option.correct) {
+        scoreBoard.correctAnswers += 1;
+      } else {
+        scoreBoard.wrongAnswers += 1;
+        recordWrongQuestion(dialogue, option.text, correctAnswerText);
+      }
+      recordResponse({
+        mode: 'dialogue',
+        context: character,
+        questionText: dialogue.question,
+        selectedAnswer: option.text,
+        correctAnswer: correctAnswerText,
+        isCorrect: Boolean(option.correct)
+      });
+      updateScoreBoard();
 
       document.getElementById('answer-options').classList.add('hidden');
-
       const feedbackBox = document.getElementById('feedback-box');
       feedbackBox.classList.remove('hidden');
-
       // Play frustration sound on wrong answer for caregiver dialogues
       if (option.isWrong && character.startsWith('caregiver')) {
         playFrustrationSound();
       }
-
       // Check if this is an end response that should close the dialogue
       if (option.isEndResponse) {
         feedbackBox.className = 'mt-4 rounded-xl p-4 bg-slate-700/50 border border-slate-600';
@@ -1109,7 +1580,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         document.getElementById('feedback-title').textContent = 'Understood';
         document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-slate-200';
         document.getElementById('feedback-text').textContent = option.feedback;
-
         const continueBtn = feedbackBox.querySelector('button');
         if (continueBtn) {
           continueBtn.textContent = 'Back to Start';
@@ -1117,7 +1587,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         }
         return;
       }
-
       // Check if this is a final correct answer (scene intervention)
       if (option.isFinalCorrect) {
         feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
@@ -1125,22 +1594,29 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         document.getElementById('feedback-title').className = 'font-bold mb-1 text-emerald-400';
         document.getElementById('feedback-title').textContent = 'Excellent!';
         document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
-
         if (!completedDialogues.has('caregiver-complete')) {
           completedDialogues.add('caregiver-complete');
           updateProgress();
         }
-
-        document.getElementById('feedback-text').textContent = option.feedback;
-
+        dialogueScenarioComplete = true;
+        saveCurrentGroupRecord();
+        document.getElementById('feedback-text').textContent = quizCompleted ? option.feedback : option.feedback + '\n\nNext, you will continue directly to Click for cases.';
         const continueBtn = feedbackBox.querySelector('button');
         if (continueBtn) {
-          continueBtn.textContent = 'Continue Learning';
-          continueBtn.onclick = continueLearning;
+          continueBtn.textContent = quizCompleted ? 'View Final Results' : 'Go to Click for Cases';
+          continueBtn.onclick = () => {
+            if (quizCompleted) {
+              showFinalResultsPage();
+            } else {
+              document.getElementById('dialogue-box').classList.add('hidden');
+              document.getElementById('instruction-overlay').classList.add('hidden');
+              startQuizMode();
+            }
+          };
         }
+        maybeShowFinalResults();
         return;
       }
-
       // Check if this is a wrong answer that should stay on the same stage
       if (option.isWrong || !option.correct) {
         // Only treat as wrong if explicitly marked isWrong OR if not correct and no nextStage
@@ -1151,7 +1627,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
           document.getElementById('feedback-title').textContent = 'Not quite...';
           document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-amber-200';
           document.getElementById('feedback-text').textContent = option.feedback;
-
           const continueBtn = feedbackBox.querySelector('button');
           if (continueBtn) {
             continueBtn.textContent = 'Try Again';
@@ -1165,7 +1640,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
           return;
         }
       }
-
       // Handle correct intermediate answer with nextStage
       if (option.correct && option.nextStage) {
         feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
@@ -1174,7 +1648,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         document.getElementById('feedback-title').textContent = 'Correct!';
         document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
         document.getElementById('feedback-text').textContent = option.feedback;
-
         const continueBtn = feedbackBox.querySelector('button');
         if (continueBtn) {
           continueBtn.textContent = 'Next';
@@ -1186,7 +1659,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         }
         return;
       }
-
       // Handle correct answer without nextStage
       if (option.correct) {
         feedbackBox.className = 'mt-4 rounded-xl p-4 bg-emerald-900/50 border border-emerald-700';
@@ -1195,7 +1667,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         document.getElementById('feedback-title').textContent = 'Correct!';
         document.getElementById('feedback-text').className = 'text-sm leading-relaxed text-emerald-200';
         document.getElementById('feedback-text').textContent = option.feedback;
-
         const continueBtn = feedbackBox.querySelector('button');
         if (continueBtn) {
           continueBtn.textContent = 'Continue Learning';
@@ -1204,7 +1675,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         return;
       }
     }
-
     function playFrustrationSound() {
       // Create a simple audio context to play a sound without needing external audio files
       const utterance = new SpeechSynthesisUtterance('Are you the real pharmacist?');
@@ -1214,35 +1684,38 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     }
-
     function continueLearning() {
+      if (dialogueScenarioComplete && quizCompleted) {
+        showFinalResultsPage();
+        return;
+      }
       document.getElementById('dialogue-box').classList.add('hidden');
       document.getElementById('instruction-overlay').classList.remove('hidden');
-
-      if (completedDialogues.length >= 2 && !completedDialogues.includes('bonus')) {
+      if (completedDialogues.size >= 2 && !completedDialogues.has('bonus')) {
         dialogues['caregiver'] = dialogues['bonus'];
         document.querySelector('#caregiver-char span:nth-child(2)').textContent = '病人';
         document.querySelector('#caregiver-char .text-3xl').textContent = '🤒';
       }
     }
-
     function updateProgress() {
       const total = 4;
       document.getElementById('progress-text').textContent = `${completedDialogues.size} / ${total}`;
-
       if (completedDialogues.size >= total) {
         showCompletion();
       }
     }
-
     function showCompletion() {
+      const nextAction = quizCompleted
+        ? `<button onclick="showFinalResultsPage()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">View Final Results</button>`
+        : `<button onclick="startQuizMode()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">Start / Continue Quiz</button>`;
+
       const dialogueBox = document.getElementById('dialogue-box');
       dialogueBox.classList.remove('hidden');
       dialogueBox.innerHTML = `
         <div class="text-center py-8">
           <div class="text-6xl mb-4">🎉</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Congratulations—Learning Complete!</h2>
-          <p class="text-slate-300 mb-6">You've successfully completed all dialogue scenarios</p>
+          <h2 class="text-2xl font-bold text-white mb-2">Dialogue Learning Complete!</h2>
+          <p class="text-slate-300 mb-6">You've successfully completed the dialogue flow.</p>
           <div class="bg-slate-700/50 rounded-xl p-4 text-left">
             <h3 class="text-teal-400 font-bold mb-3">📚 Key Learning Points</h3>
             <ul class="text-slate-300 text-sm space-y-2">
@@ -1253,13 +1726,14 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
               <li>✓ NG tube medication administration: Proper flushing technique prevents tube occlusion</li>
             </ul>
           </div>
-          <button onclick="resetGame()" class="mt-6 bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">
-            Start Over
-          </button>
+          <div class="mt-6 grid sm:grid-cols-2 gap-3">
+            ${nextAction}
+            <button onclick="resetGame()" class="bg-slate-600 hover:bg-slate-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">Restart Dialogue</button>
+          </div>
         </div>
       `;
+      saveCurrentGroupRecord();
     }
-
     function resetGame() {
       completedDialogues = new Set();
       updateProgress();
@@ -1290,9 +1764,10 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         </div>
       `;
       document.getElementById('instruction-overlay').classList.remove('hidden');
-      document.getElementById('progress-text').textContent = '0 / 3';
+      document.getElementById('progress-text').textContent = '0 / 4';
+      dialogueScenarioComplete = false;
+      saveCurrentGroupRecord();
     }
-
     // Quiz Mode
     let quizState = {
       currentQuestion: 0,
@@ -1344,22 +1819,18 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         }
       ]
     };
-
     function startQuizMode() {
       quizState.currentQuestion = 0;
       quizState.selectedAnswers = [];
       showQuizQuestion();
     }
-
     function showQuizQuestion() {
       const q = quizState.questions[quizState.currentQuestion];
       const dialogueBox = document.getElementById('dialogue-box');
       dialogueBox.classList.remove('hidden');
       dialogueBox.innerHTML = '';
-
       const questionNum = quizState.currentQuestion + 1;
       const totalQuestions = quizState.questions.length;
-
       let html = `
         <div class="mb-4">
           <p class="text-slate-400 text-sm mb-2">Question ${questionNum} of ${totalQuestions}</p>
@@ -1367,7 +1838,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         </div>
         <div class="space-y-3 mb-4" id="quiz-options">
       `;
-
       q.options.forEach((option, index) => {
         const letter = String.fromCharCode(65 + index);
         if (q.type === 'multiple') {
@@ -1391,9 +1861,7 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
           `;
         }
       });
-
       html += `</div>`;
-
       if (q.type === 'multiple') {
         html += `
           <button onclick="submitMultipleChoice()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors">
@@ -1401,28 +1869,45 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
           </button>
         `;
       }
-
       dialogueBox.innerHTML = html;
-
       if (q.type === 'single') {
         document.querySelectorAll('.quiz-option').forEach(btn => {
           btn.onclick = () => submitSingleChoice(btn.dataset.index);
         });
       }
     }
-
     function submitSingleChoice(index) {
       const q = quizState.questions[quizState.currentQuestion];
       const option = q.options[index];
 
+      scoreBoard.totalSubmissions += 1;
+      const correctTextsForSingle = q.options.filter(o => o.correct).map(o => o.text).join(' / ');
+      if (option.correct) {
+        scoreBoard.correctAnswers += 1;
+      } else {
+        scoreBoard.wrongAnswers += 1;
+        recordWrongQuestion(
+          q,
+          option.text,
+          correctTextsForSingle
+        );
+      }
+      recordResponse({
+        mode: 'quiz',
+        context: `question_${quizState.currentQuestion + 1}`,
+        questionText: q.question,
+        selectedAnswer: option.text,
+        correctAnswer: correctTextsForSingle,
+        isCorrect: Boolean(option.correct)
+      });
+      updateScoreBoard();
+
       const dialogueBox = document.getElementById('dialogue-box');
       const optionsDiv = document.getElementById('quiz-options');
       optionsDiv.innerHTML = '';
-
       let feedbackClass = 'bg-slate-700/50 border border-slate-600';
       let icon = '❌';
       let title = 'Incorrect';
-
       if (option.correct) {
         feedbackClass = 'bg-emerald-900/50 border border-emerald-700';
         icon = '✅';
@@ -1432,7 +1917,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         icon = '❌';
         title = 'Not Quite...';
       }
-
       let html = `
         <div class="mt-4 rounded-xl p-4 ${feedbackClass}">
           <div class="flex items-start gap-3 mb-3">
@@ -1443,7 +1927,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
             </div>
           </div>
       `;
-
       if (option.correct && quizState.currentQuestion < quizState.questions.length - 1) {
         html += `<button onclick="nextQuizQuestion()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Next Question</button>`;
       } else if (option.correct) {
@@ -1451,33 +1934,51 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       } else {
         html += `<button onclick="showQuizQuestion()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Try Again</button>`;
       }
-
       html += `</div>`;
       dialogueBox.innerHTML += html;
     }
-
     function submitMultipleChoice() {
       const q = quizState.questions[quizState.currentQuestion];
       const checkboxes = document.querySelectorAll('.quiz-checkbox');
       const selected = Array.from(checkboxes)
         .map((cb, i) => cb.checked ? i : -1)
         .filter(i => i !== -1);
-
       const correctIndices = q.options
         .map((opt, i) => opt.correct ? i : -1)
         .filter(i => i !== -1);
-
       const isCorrect = selected.length === correctIndices.length &&
         selected.every(i => correctIndices.includes(i));
+
+      scoreBoard.totalSubmissions += 1;
+      const selectedTexts = selected.length > 0
+        ? selected.map(i => q.options[i].text).join(' / ')
+        : 'No answer';
+      const correctTexts = q.options
+        .filter(o => o.correct)
+        .map(o => o.text)
+        .join(' / ');
+      if (isCorrect) {
+        scoreBoard.correctAnswers += 1;
+      } else {
+        scoreBoard.wrongAnswers += 1;
+        recordWrongQuestion(q, selectedTexts, correctTexts);
+      }
+      recordResponse({
+        mode: 'quiz',
+        context: `question_${quizState.currentQuestion + 1}`,
+        questionText: q.question,
+        selectedAnswer: selectedTexts,
+        correctAnswer: correctTexts,
+        isCorrect
+      });
+      updateScoreBoard();
 
       const dialogueBox = document.getElementById('dialogue-box');
       const optionsDiv = document.getElementById('quiz-options');
       optionsDiv.innerHTML = '';
-
       let feedbackClass = 'bg-slate-700/50 border border-slate-600';
       let icon = '❌';
       let title = 'Incorrect';
-
       if (isCorrect) {
         feedbackClass = 'bg-emerald-900/50 border border-emerald-700';
         icon = '✅';
@@ -1487,7 +1988,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         icon = '❌';
         title = 'Not Quite...';
       }
-
       let html = `
         <div class="mt-4 rounded-xl p-4 ${feedbackClass}">
           <div class="flex items-start gap-3 mb-3">
@@ -1498,7 +1998,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
             </div>
           </div>
       `;
-
       if (isCorrect && quizState.currentQuestion < quizState.questions.length - 1) {
         html += `<button onclick="nextQuizQuestion()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Next Question</button>`;
       } else if (isCorrect) {
@@ -1506,23 +2005,26 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       } else {
         html += `<button onclick="showQuizQuestion()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium py-2 rounded-lg transition-colors mt-3">Try Again</button>`;
       }
-
       html += `</div>`;
       dialogueBox.innerHTML += html;
     }
-
     function nextQuizQuestion() {
       quizState.currentQuestion++;
       showQuizQuestion();
     }
-
     function endQuiz() {
+      quizCompleted = true;
+      saveCurrentGroupRecord();
+      const primaryAction = dialogueScenarioComplete
+        ? `<button onclick="showFinalResultsPage()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">View Final Results</button>`
+        : `<button onclick="exitQuiz()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">Back to Main Scene</button>`;
+
       const dialogueBox = document.getElementById('dialogue-box');
       dialogueBox.innerHTML = `
         <div class="text-center py-8">
           <div class="text-6xl mb-4">🎓</div>
           <h2 class="text-2xl font-bold text-white mb-2">Quiz Complete!</h2>
-          <p class="text-slate-300 mb-6">You've successfully completed all clinical case questions</p>
+          <p class="text-slate-300 mb-6">You've successfully completed all clinical case questions.</p>
           <div class="bg-slate-700/50 rounded-xl p-4 text-left mb-6">
             <h3 class="text-teal-400 font-bold mb-3">✓ Key Takeaways</h3>
             <ul class="text-slate-300 text-sm space-y-2">
@@ -1533,13 +2035,13 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
               <li>• Alternatives: Consider dissolving enteric-coated tablets in water or switching formulations</li>
             </ul>
           </div>
-          <button onclick="exitQuiz()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-8 py-3 rounded-xl transition-colors">
-            Back to Main Scene
-          </button>
+          <div class="grid sm:grid-cols-2 gap-3">
+            ${primaryAction}
+            <button onclick="exportCurrentGroupResponses()" class="bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-8 py-3 rounded-xl transition-colors">Export This Team Record</button>
+          </div>
         </div>
       `;
     }
-
     function exitQuiz() {
       // Reset dialogue box to original state
       document.getElementById('dialogue-box').classList.add('hidden');
@@ -1574,8 +2076,8 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       // Reset quiz state so it can be replayed
       quizState.currentQuestion = 0;
       quizState.selectedAnswers = [];
+      saveCurrentGroupRecord();
     }
-
     // ========== TEMPLATE: Copy this section to create NEW dialogue scenarios ==========
     // INSTRUCTIONS: 
     // 1. Copy the entire template below
@@ -1615,7 +2117,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       ]
     }
     `;
-
     // Key properties explained:
     // - speaker: Name of the character speaking
     // - role: Their professional role
@@ -1632,7 +2133,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
     //   - isWrong: (Optional) Marks as wrong answer to trigger retry
     //   - isEndResponse: (Optional) Closes dialogue after showing feedback
     //   - isFinalCorrect: (Optional) Shows completion screen
-
     // EXAMPLE: Simple single-question dialogue
     const EXAMPLE_SIMPLE = `
     nurse_communication: {
@@ -1657,7 +2157,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       ]
     }
     `;
-
     // EXAMPLE: Multi-stage dialogue (interconnected questions)
     const EXAMPLE_MULTISTAGE = `
     // First dialogue
@@ -1683,7 +2182,6 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
         }
       ]
     },
-
     // Second dialogue (connected to first)
     question_part2: {
       speaker: 'Dr. Wilson',
@@ -1701,13 +2199,13 @@ This work is licensed under the Creative Commons Attribution-NonCommercial-Share
       ]
     }
     `;
-
     console.log('DIALOGUE TEMPLATE READY');
     console.log('Copy the template above to create new scenarios');
     console.log('See EXAMPLE_SIMPLE and EXAMPLE_MULTISTAGE for reference');
-
+    updateScoreBoard();
+    updateGroupDisplay();
     initializeApp();
+    openGroupModal();
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e124c5ef33ef1ec',t:'MTc3NDMxOTg5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
